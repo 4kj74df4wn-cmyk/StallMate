@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StallMate — Owner Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f172a;color:#f1f5f9;font-family:'Sarabun',sans-serif;min-height:100vh;padding:20px 16px 60px}
+.wrap{max-width:480px;margin:0 auto}
+.hd{text-align:center;margin-bottom:18px}
+.hd .t{font-size:24px;font-weight:900;color:#f59e0b}
+.hd .s{font-size:13px;color:#94a3b8;margin-top:4px}
+.room-bar{display:flex;gap:8px;margin-bottom:16px}
+.room-in{flex:1;background:#1e293b;border:2px solid #334155;border-radius:10px;padding:11px;color:#f1f5f9;font-size:18px;font-weight:900;text-align:center;letter-spacing:3px;font-family:'Sarabun',sans-serif}
+.room-in:focus{outline:none;border-color:#f59e0b}
+.room-btn{background:#f59e0b;border:none;color:#000;border-radius:10px;padding:0 16px;font-size:14px;font-weight:900;font-family:'Sarabun',sans-serif;cursor:pointer}
+.status{display:flex;align-items:center;gap:7px;justify-content:center;font-size:12px;color:#94a3b8;font-weight:700;margin-bottom:16px}
+.dot{width:8px;height:8px;border-radius:50%;background:#475569}
+.dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}
+.dot.err{background:#ef4444}
+.card{background:#1e293b;border-radius:16px;padding:16px;margin-bottom:12px}
+.card-t{font-size:12px;font-weight:900;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi{background:#1e293b;border-radius:14px;padding:14px;text-align:center}
+.kpi .v{font-size:22px;font-weight:900;color:#f59e0b}
+.kpi .l{font-size:11px;color:#94a3b8;font-weight:700;margin-top:2px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #334155;font-size:14px}
+.row:last-child{border:none}
+.row .k{color:#94a3b8;font-weight:700}
+.row .v{font-weight:900}
+.order{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #334155;gap:8px;font-size:13px}
+.order:last-child{border:none}
+.order .nm{flex:1}
+.order .amt{font-weight:900;color:#f59e0b}
+.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:800}
+.b-cash{background:rgba(34,197,94,.15);color:#22c55e}
+.b-scan{background:rgba(59,130,246,.15);color:#3b82f6}
+.b-thai{background:rgba(168,85,247,.15);color:#a855f7}
+.b-credit{background:rgba(239,68,68,.15);color:#ef4444}
+.empty{text-align:center;padding:30px 10px;color:#94a3b8;font-size:13px}
+.note{font-size:11px;color:#64748b;text-align:center;margin-top:18px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <div class="t">🛒 StallMate</div>
+    <div class="s">Owner Dashboard — ดูยอดขายแบบ Real-time (อ่านอย่างเดียว)</div>
+  </div>
+
+  <div class="room-bar">
+    <input class="room-in" id="roomIn" maxlength="6" placeholder="ROOM CODE" oninput="this.value=this.value.toUpperCase()">
+    <button class="room-btn" onclick="connectRoom()">เชื่อมต่อ</button>
+  </div>
+  <div class="status"><div class="dot" id="dot"></div><span id="statusTxt">ยังไม่ได้เชื่อมต่อ</span></div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="v" id="kTotal">฿0</div><div class="l">ยอดขายวันนี้</div></div>
+    <div class="kpi"><div class="v" id="kRecv" style="color:#22c55e">฿0</div><div class="l">รับแล้ว</div></div>
+    <div class="kpi"><div class="v" id="kCredit" style="color:#ef4444">฿0</div><div class="l">ค้างจ่าย</div></div>
+    <div class="kpi"><div class="v" id="kCount">0</div><div class="l">รายการวันนี้</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">💳 แยกตามวิธีจ่าย (วันนี้)</div>
+    <div class="row"><span class="k">💵 เงินสด</span><span class="v" id="pCash">฿0</span></div>
+    <div class="row"><span class="k">📱 สแกน/โอน</span><span class="v" id="pScan">฿0</span></div>
+    <div class="row"><span class="k">🇹🇭 ไทยช่วยไทย</span><span class="v" id="pThai">฿0</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">🕐 ออเดอร์ล่าสุด</div>
+    <div id="recentOrders"><div class="empty">ยังไม่มีข้อมูล — ใส่ Room Code แล้วกด "เชื่อมต่อ"</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">📚 รอบขายล่าสุด (ปิดแล้ว)</div>
+    <div id="recentSessions"><div class="empty">ยังไม่มีข้อมูล</div></div>
+  </div>
+
+  <div class="note">
+    หน้านี้อ่านข้อมูลอย่างเดียว ไม่สามารถแก้ไข/ลบรายการได้<br>
+    เปิดจากมือถือหรือคอมที่ไหนก็ได้ ไม่ต้องตั้งค่า Firebase เอง<br>
+    อัพเดตล่าสุด: <span id="lastUpdate">—</span>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+// ── ค่านี้เป็น Firebase project ของร้าน June เอง (stallmate-9caac) ──
+// หน้านี้เปิดให้ "อ่านอย่างเดียว" เท่านั้น ไม่มีการเขียน/ลบข้อมูลจากหน้านี้
+const FB_CONFIG={
+  apiKey:"AIzaSyDp9rzZeJgTxHtOOOne4XycDbQAxsd84v0",
+  authDomain:"stallmate-9caac.firebaseapp.com",
+  databaseURL:"https://stallmate-9caac-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"stallmate-9caac",
+  storageBucket:"stallmate-9caac.firebasestorage.app",
+  messagingSenderId:"221922728731",
+  appId:"1:221922728731:web:d2de1ef4ab8de7e568d1be"
+};
+const DEFAULT_ROOM='BBMANN';
+const PL={cash:'💵 สด',scan:'📱 สแกน',thai:'🇹🇭 ไทย',split:'✂️ แบ่ง',credit:'📝 ค้าง'};
+const PB={cash:'b-cash',scan:'b-scan',thai:'b-thai',split:'b-scan',credit:'b-credit'};
+
+let app,db,listener,delListener,sessListener;
+
+function setDot(state){document.getElementById('dot').className='dot'+(state?' '+state:'');}
+function setStatus(txt){document.getElementById('statusTxt').textContent=txt;}
+
+function connectRoom(){
+  const code=(document.getElementById('roomIn').value||'').trim().toUpperCase();
+  if(code.length!==6){alert('ใส่ Room Code 6 หลัก (ดูได้ในแอป StallMate หน้าตั้งค่า)');return;}
+  localStorage.setItem('sm_owner_room',code);
+  startListening(code);
+}
+
+function startListening(code){
+  if(!app){
+    try{app=firebase.initializeApp(FB_CONFIG,'stallmate-owner');}
+    catch(e){app=firebase.app('stallmate-owner');}
+    db=firebase.database(app);
+  }
+  if(listener) listener.off();
+  if(delListener) delListener.off();
+  if(sessListener) sessListener.off();
+  setDot('');setStatus('กำลังเชื่อมต่อ Room: '+code+'...');
+
+  let remoteSales=[],deletedIds=new Set();
+  function render(){
+    const merged=remoteSales.filter(s=>s&&s.id&&!deletedIds.has(String(s.id).replace('.','_')));
+    renderDashboard(merged);
+  }
+
+  listener=db.ref('rooms/'+code+'/salesRecords');
+  listener.on('value',snap=>{
+    const data=snap.val();
+    remoteSales=data?Object.values(data):[];
+    setDot('on');setStatus('✅ เชื่อมต่อแล้ว — Room: '+code);
+    document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    render();
+  },err=>{setDot('err');setStatus('❌ เชื่อมต่อไม่สำเร็จ — เช็ค Room Code');});
+
+  delListener=db.ref('rooms/'+code+'/deletedSales');
+  delListener.on('value',snap=>{
+    const data=snap.val();
+    deletedIds=new Set(data?Object.keys(data):[]);
+    render();
+  });
+
+  sessListener=db.ref('rooms/'+code+'/sessions');
+  sessListener.on('value',snap=>{
+    const data=snap.val();
+    const sessions=data?Object.values(data):[];
+    renderSessions(sessions);
+  });
+}
+
+function renderDashboard(sales){
+  const td=new Date().toDateString();
+  const ts=sales.filter(s=>s.time&&new Date(s.time).toDateString()===td);
+  const total=ts.reduce((a,b)=>a+(b.total||0),0);
+  const ca=ts.reduce((a,b)=>a+(b.cashAmount||0),0);
+  const sa=ts.reduce((a,b)=>a+(b.scanAmount||0),0);
+  const ta=ts.reduce((a,b)=>a+(b.thaiAmount||0),0);
+  const cra=ts.filter(s=>!s.paid).reduce((a,b)=>a+(b.creditAmount||0),0);
+  const recv=ca+sa+ta;
+  document.getElementById('kTotal').textContent='฿'+total.toLocaleString();
+  document.getElementById('kRecv').textContent='฿'+recv.toLocaleString();
+  document.getElementById('kCredit').textContent='฿'+cra.toLocaleString();
+  document.getElementById('kCount').textContent=ts.length;
+  document.getElementById('pCash').textContent='฿'+ca.toLocaleString();
+  document.getElementById('pScan').textContent='฿'+sa.toLocaleString();
+  document.getElementById('pThai').textContent='฿'+ta.toLocaleString();
+
+  const recent=[...ts].sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,20);
+  const el=document.getElementById('recentOrders');
+  if(!recent.length){el.innerHTML='<div class="empty">ยังไม่มีรายการขายวันนี้</div>';return;}
+  el.innerHTML=recent.map(s=>{
+    const unpaid=s.pay==='credit'&&!s.paid;
+    const time=new Date(s.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="order"><span style="color:#64748b;flex-shrink:0">'+time+'</span>'+
+      '<span class="nm">'+(s.name||'')+(s.qty>1?' ×'+s.qty:'')+(unpaid?' ⚠️':'')+'</span>'+
+      '<span class="badge '+(PB[s.pay]||'b-scan')+'">'+(PL[s.pay]||s.pay)+'</span>'+
+      '<span class="amt">฿'+(s.total||0).toLocaleString()+'</span></div>';
+  }).join('');
+}
+
+function renderSessions(sessions){
+  const el=document.getElementById('recentSessions');
+  if(!sessions.length){el.innerHTML='<div class="empty">ยังไม่มีรอบขายที่ปิดแล้ว</div>';return;}
+  const recent=[...sessions].sort((a,b)=>new Date(b.endTime||0)-new Date(a.endTime||0)).slice(0,10);
+  el.innerHTML=recent.map(s=>{
+    const diff=s.cashDiff;
+    const diffTxt=diff===0?'✅ ตรง':diff>0?'เกิน ฿'+diff.toLocaleString():diff<0?'ขาด ฿'+Math.abs(diff).toLocaleString():'';
+    return '<div class="row"><span class="k">'+(s.date||'')+' — '+(s.mkt||'')+' ('+(s.round||'')+')</span><span class="v">฿'+(s.total||0).toLocaleString()+(diffTxt?' <span style="font-size:11px;color:'+(diff<0?'#ef4444':'#22c55e')+'">'+diffTxt+'</span>':'')+'</span></div>';
+  }).join('');
+}
+
+// auto-connect ด้วย room code ที่เคยใช้ หรือ default
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('sm_owner_room')||DEFAULT_ROOM;
+  document.getElementById('roomIn').value=saved;
+  startListening(saved);
+});
+</script>
+</body>
+</html>
