@@ -98,6 +98,36 @@
         <tbody id="pilotBody"></tbody>
       </table>
     </div>
+
+    <div class="card">
+      <label style="margin-top:0">🤝 Affiliate — เรทค่าคอม</label>
+      <div class="hint" style="margin-top:0">เปิดใช้งานอัตโนมัติเมื่อร้านอัปเกรด 199 ขึ้นไป ปิดได้เฉพาะจากที่นี่ — ยอดค้างจ่ายคำนวณอัตโนมัติจากเรทนี้ x จำนวนแนะนำสำเร็จ ลบยอดที่บันทึกว่าจ่ายแล้ว การจ่ายจริงยังเป็น manual เสมอ (โอนเองผ่าน PromptPay แล้วกด "+จ่าย" เพื่อบันทึก)</div>
+      <label>ค่าคอมต่อ 1 การแนะนำสำเร็จ (บาท)</label>
+      <input type="number" id="affRateIn" value="0" min="0">
+      <button onclick="saveAffRate()">💾 บันทึกเรท</button>
+      <label style="margin-top:14px">รายชื่อ Affiliate</label>
+      <button class="secondary" onclick="loadAffiliates()">🔄 รีเฟรชรายการ</button>
+      <table id="affiliateTable">
+        <thead><tr><th>โค้ด</th><th>ร้าน/เครื่อง</th><th>สถานะ</th><th>แนะนำสำเร็จ</th><th>ค้างจ่าย</th><th>จ่ายแล้ว</th><th>จัดการ</th></tr></thead>
+        <tbody id="affiliateBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">🏷️ ร้านค้า & Tag (สำหรับแบ่งกลุ่ม broadcast LINE OA)</label>
+      <div class="hint" style="margin-top:0">tier มาจากข้อมูลจริงอัตโนมัติ ส่วนช่อง Tag พิมพ์คั่นด้วยจุลภาค เช่น "pilot, vip" แล้วกด 💾 เพื่อใช้ cross-check ตอน broadcast ใน LINE OA (ยังไม่ได้ต่อ LINE Messaging API ตรง ต้องเช็คมือ)</div>
+      <button class="secondary" onclick="loadShopProfiles()">🔄 รีเฟรชรายการ</button>
+      <table id="shopTable">
+        <thead><tr><th>ร้าน/เครื่อง</th><th>Tier</th><th>เปิดแอปกี่ครั้ง</th><th>เปิดล่าสุด</th><th>Tag</th><th></th></tr></thead>
+        <tbody id="shopBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">📊 สถิติเปิดแอปรายวัน (7 วันล่าสุด)</label>
+      <button class="secondary" onclick="loadDashboard()">🔄 รีเฟรชสถิติ</button>
+      <div id="dashBody" style="margin-top:10px;font-size:13px"></div>
+    </div>
   </div>
 </div>
 
@@ -133,6 +163,9 @@ auth.onAuthStateChanged(user=>{
     document.getElementById('userEmailLbl').textContent='เข้าสู่ระบบเป็น: '+user.email;
     loadRecent();
     loadPilotOverrides();
+    loadAffiliates();
+    loadShopProfiles();
+    loadDashboard();
   }else{
     document.getElementById('loginCard').style.display='block';
     document.getElementById('genArea').style.display='none';
@@ -278,6 +311,154 @@ async function loadPilotOverrides(){
   }catch(e){
     console.error('Load pilot overrides fail',e);
     body.innerHTML='<tr><td colspan="3">โหลดไม่สำเร็จ: '+e.message+'</td></tr>';
+  }
+}
+
+// ═══ Affiliate — เรทค่าคอม + รายชื่อ + เปิด/ปิดรายร้าน + บันทึกยอดจ่าย ═══
+// ยอดค้างจ่าย = จำนวนแนะนำสำเร็จ x เรทที่ตั้งไว้ - ยอดที่เคยบันทึกว่าจ่ายแล้ว (คำนวณสดทุกครั้งที่โหลด เปลี่ยนเรทแล้วยอดอัปเดตอัตโนมัติ)
+async function saveAffRate(){
+  const val=parseFloat(document.getElementById('affRateIn').value)||0;
+  try{
+    await db.ref('affiliateConfig/commissionPerReferralTHB').set(val);
+    alert('✅ บันทึกเรทแล้ว: '+val+' บาท/การแนะนำสำเร็จ');
+    loadAffiliates();
+  }catch(e){
+    console.error('Save affiliate rate fail',e);
+    alert('❌ บันทึกไม่สำเร็จ: '+e.message);
+  }
+}
+async function loadAffiliates(){
+  const body=document.getElementById('affiliateBody');
+  body.innerHTML='<tr><td colspan="7">กำลังโหลด...</td></tr>';
+  try{
+    const [affSnap,refSnap,cfgSnap]=await Promise.all([
+      db.ref('affiliates').once('value'),
+      db.ref('referrals').once('value'),
+      db.ref('affiliateConfig/commissionPerReferralTHB').once('value')
+    ]);
+    const affs=affSnap.val()||{};
+    const refs=refSnap.val()||{};
+    const rate=cfgSnap.val()||0;
+    document.getElementById('affRateIn').value=rate;
+    const counts={};
+    Object.values(refs).forEach(r=>{
+      if(r && r.referredByCode) counts[r.referredByCode]=(counts[r.referredByCode]||0)+1;
+    });
+    const rows=Object.keys(affs).sort().map(ownerId=>{
+      const a=affs[ownerId];
+      const cnt=counts[a.refCode]||0;
+      const paid=a.paidTHB||0;
+      const owed=Math.max(0,cnt*rate-paid);
+      const statusTxt=a.active?'<span style="color:#22c55e;font-weight:800">เปิดใช้งาน</span>':'<span style="color:#ef4444;font-weight:800">ปิดใช้งาน</span>';
+      const toggleLbl=a.active?'ปิด':'เปิด';
+      return '<tr><td>'+a.refCode+'</td><td style="font-size:11px">'+ownerId+'</td><td>'+statusTxt+'</td><td>'+cnt+'</td><td>'+owed.toLocaleString()+'</td><td>'+paid.toLocaleString()+'</td>'
+        +'<td><a href="#" onclick="toggleAffiliateActive(\''+ownerId+'\','+(!a.active)+');return false;" style="color:#f59e0b">'+toggleLbl+'</a> · '
+        +'<a href="#" onclick="addAffiliatePaid(\''+ownerId+'\');return false;" style="color:#3b82f6">+จ่าย</a></td></tr>';
+    });
+    body.innerHTML=rows.length?rows.join(''):'<tr><td colspan="7">ยังไม่มี affiliate</td></tr>';
+  }catch(e){
+    console.error('Load affiliates fail',e);
+    body.innerHTML='<tr><td colspan="7">โหลดไม่สำเร็จ: '+e.message+'</td></tr>';
+  }
+}
+async function toggleAffiliateActive(ownerId,newActive){
+  const msg=newActive?'เปิดใช้งาน affiliate ของ '+ownerId+' ใหม่?':'ปิดใช้งาน affiliate ของ '+ownerId+' ใช่หรือไม่? (ร้านนี้จะไม่เห็นโค้ดแนะนำเพื่อนอีกจนกว่าจะเปิดคืน)';
+  if(!confirm(msg)) return;
+  try{
+    await db.ref('affiliates/'+ownerId).update({active:newActive});
+    loadAffiliates();
+  }catch(e){
+    console.error('Toggle affiliate fail',e);
+    alert('❌ ทำรายการไม่สำเร็จ: '+e.message);
+  }
+}
+async function addAffiliatePaid(ownerId){
+  const amtStr=prompt('บันทึกยอดที่จ่ายเพิ่ม (บาท) ให้ '+ownerId+' — ยอดนี้จะบวกสะสมเข้ากับยอดจ่ายแล้วเดิม:','0');
+  if(!amtStr) return;
+  const amt=parseFloat(amtStr);
+  if(isNaN(amt)||amt<=0){ alert('⚠️ ใส่จำนวนเงินที่ถูกต้อง'); return; }
+  try{
+    await db.ref('affiliates/'+ownerId+'/paidTHB').transaction(cur=>(cur||0)+amt);
+    loadAffiliates();
+  }catch(e){
+    console.error('Add affiliate paid fail',e);
+    alert('❌ บันทึกไม่สำเร็จ: '+e.message);
+  }
+}
+
+// ═══ ร้านค้า & Tag — สำหรับแบ่งกลุ่ม broadcast LINE OA แบบ manual ═══
+async function loadShopProfiles(){
+  const body=document.getElementById('shopBody');
+  body.innerHTML='<tr><td colspan="6">กำลังโหลด...</td></tr>';
+  try{
+    const snap=await db.ref('shopProfiles').once('value');
+    const val=snap.val()||{};
+    const rows=Object.keys(val).sort().map(id=>{
+      const s=val[id];
+      const tierLbl=s.tier==='paid_annual'?'699/ปี':s.tier==='paid_once'?'199':'ฟรี';
+      const tagsVal=(s.customTags||[]).join(', ');
+      const lastOpen=s.lastOpenAt?new Date(s.lastOpenAt).toLocaleDateString('th-TH',{day:'numeric',month:'short'}):'-';
+      return '<tr><td style="font-size:11px">'+id+'</td><td>'+tierLbl+'</td><td>'+(s.openCount||0)+'</td><td>'+lastOpen+'</td>'
+        +'<td><input type="text" value="'+tagsVal.replace(/"/g,'&quot;')+'" style="padding:4px;font-size:12px;width:100%" id="tagIn_'+id+'"></td>'
+        +'<td><a href="#" onclick="saveShopTags(\''+id+'\');return false;" style="color:#22c55e">💾</a></td></tr>';
+    });
+    body.innerHTML=rows.length?rows.join(''):'<tr><td colspan="6">ยังไม่มีข้อมูล (รอร้านเปิดแอปครั้งแรก)</td></tr>';
+  }catch(e){
+    console.error('Load shop profiles fail',e);
+    body.innerHTML='<tr><td colspan="6">โหลดไม่สำเร็จ: '+e.message+'</td></tr>';
+  }
+}
+async function saveShopTags(id){
+  const raw=document.getElementById('tagIn_'+id).value;
+  const tags=raw.split(',').map(t=>t.trim()).filter(Boolean);
+  try{
+    await db.ref('shopProfiles/'+id+'/customTags').set(tags);
+    alert('✅ บันทึก tag แล้ว');
+  }catch(e){
+    console.error('Save shop tags fail',e);
+    alert('❌ บันทึกไม่สำเร็จ: '+e.message);
+  }
+}
+
+// ═══ Dashboard สถิติเปิดแอปรายวัน — นับทุกครั้งที่เปิดแอป แยกตาม tier ═══
+async function loadDashboard(){
+  const body=document.getElementById('dashBody');
+  body.innerHTML='กำลังโหลด...';
+  try{
+    const days=[];
+    const now=new Date();
+    for(let i=6;i>=0;i--){
+      days.push(new Date(now.getTime()-i*86400000).toISOString().slice(0,10));
+    }
+    const snaps=await Promise.all(days.map(d=>db.ref('dailyLoads/'+d).once('value')));
+    let rows='<table><thead><tr><th>วันที่</th><th>ฟรี</th><th>199</th><th>699/ปี</th><th>รวมเปิดแอป</th><th>ร้านที่เปิด</th></tr></thead><tbody>';
+    snaps.forEach((snap,i)=>{
+      const val=snap.val()||{};
+      let free=0,p199=0,p699=0,totalOpens=0;
+      const shopIds=Object.keys(val);
+      shopIds.forEach(id=>{
+        const rec=val[id]||{};
+        const c=rec.count||0;
+        totalOpens+=c;
+        if(rec.tier==='paid_annual') p699+=c;
+        else if(rec.tier==='paid_once') p199+=c;
+        else free+=c;
+      });
+      rows+='<tr><td>'+days[i]+'</td><td>'+free+'</td><td>'+p199+'</td><td>'+p699+'</td><td>'+totalOpens+'</td><td>'+shopIds.length+'</td></tr>';
+    });
+    rows+='</tbody></table>';
+    const profSnap=await db.ref('shopProfiles').once('value');
+    const profs=profSnap.val()||{};
+    let tf=0,t199=0,t699=0;
+    Object.values(profs).forEach(s=>{
+      if(s.tier==='paid_annual') t699++;
+      else if(s.tier==='paid_once') t199++;
+      else tf++;
+    });
+    body.innerHTML='<div style="margin-bottom:10px">ร้านทั้งหมดที่เคยเปิดแอป (สะสม): ฟรี '+tf+' · 199 '+t199+' · 699/ปี '+t699+' (รวม '+(tf+t199+t699)+' ร้าน)</div>'+rows;
+  }catch(e){
+    console.error('Load dashboard fail',e);
+    body.innerHTML='โหลดไม่สำเร็จ: '+e.message;
   }
 }
 </script>
