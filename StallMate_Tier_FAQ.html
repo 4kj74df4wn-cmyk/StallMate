@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StallMate — FAQ แต่ละแพ็กเกจ</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --accent: #f59e0b;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Sarabun, Tahoma, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  header h1 {
+    font-size: 1.6rem;
+    margin: 0 0 6px;
+    color: #fff;
+  }
+  header p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 28px 0 20px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tab-btn:hover { border-color: var(--accent); }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #1a1305;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .tier-section { display: none; }
+  .tier-section.active { display: block; }
+  .tier-title {
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  details {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  summary {
+    padding: 14px 18px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #fff;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: "+";
+    color: var(--accent);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  details[open] summary::after { content: "−"; }
+  details[open] summary {
+    border-bottom: 1px solid var(--border);
+  }
+  .answer {
+    padding: 14px 18px 16px;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🛒 StallMate — FAQ แต่ละแพ็กเกจ</h1>
+    <p>อัปเดต 14 ก.ค. 2026 · อ้างอิงจาก StallMate_Pricing_Tiers_Features.md</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="free">🆓 ฟรี</button>
+    <button class="tab-btn" data-tab="p199">⭐ 199 บาท</button>
+    <button class="tab-btn" data-tab="p699">👥 699 บาท/ปี</button>
+  </div>
+
+  <section class="tier-section active" id="free">
+    <h2 class="tier-title">แพ็กเกจฟรี</h2>
+
+    <details open>
+      <summary>1. ใช้ฟรีจริงไหม มีข้อผูกมัดอะไรไหม</summary>
+      <div class="answer">ฟรีจริง ใช้ได้ตลอดไป ไม่มีวันหมดอายุ ไม่ต้องผูกบัตร ไม่มีค่าใช้จ่ายแอบแฝง</div>
+    </details>
+    <details>
+      <summary>2. ฟรีแล้วได้ฟีเจอร์อะไรบ้าง</summary>
+      <div class="answer">ได้ฟีเจอร์หลักครบ: บันทึกการขาย เลือกวิธีจ่ายเงินได้หลายแบบ (สด/โอน/ไทยช่วยไทย/แบ่งจ่าย/ค้างจ่าย) ดูยอดขายวันนี้แบบ real-time ปิดรอบขายได้ แชร์รูปสรุปยอดได้ — ฟีเจอร์ไม่ถูกล็อก แค่จำกัดสเกลการใช้งาน</div>
+    </details>
+    <details>
+      <summary>3. เมนูสินค้าใส่ได้กี่รายการ</summary>
+      <div class="answer">สูงสุด 10 รายการ ถ้าเกินต้องลบของเก่าก่อนถึงจะเพิ่มใหม่ได้ หรืออัพเกรดเป็น 199 บาทเพื่อปลดล็อกไม่จำกัด</div>
+    </details>
+    <details>
+      <summary>4. ขายได้กี่ออเดอร์ต่อวัน นับยังไง</summary>
+      <div class="answer">สูงสุด 20 ออเดอร์/วัน นับจากจำนวน "รายการขาย" ไม่ใช่จำนวนชิ้น รวมทุกวิธีจ่ายเงิน รีเซ็ตใหม่ทุกวัน</div>
+    </details>
+    <details>
+      <summary>5. ถ้าขายเกิน 20 ออเดอร์ในวันนั้นจะเป็นยังไง</summary>
+      <div class="answer">บันทึกออเดอร์ที่ 21 ต่อไม่ได้ในวันนั้น จนกว่าจะข้ามวันใหม่หรืออัพเกรดเป็น 199 บาท — ปกติแปลว่าขายดีจนถึงเวลาต้องอัพเกรดแล้ว</div>
+    </details>
+    <details>
+      <summary>6. ข้อมูลมี backup ไหม ถ้าเครื่องหายหรือรีเซ็ตเครื่องจะเป็นยังไง</summary>
+      <div class="answer">ไม่มี backup ในแพ็กเกจฟรี ข้อมูลอยู่ในเครื่องอย่างเดียว เครื่องหาย/รีเซ็ต/ล้าง cache = ข้อมูลหายถาวร กู้คืนไม่ได้ ถ้ากังวลเรื่องนี้แนะนำอัพเกรดเป็น 199 บาท</div>
+    </details>
+    <details>
+      <summary>7. ใช้ได้กี่เครื่อง เชื่อมข้อมูลข้ามเครื่องได้ไหม</summary>
+      <div class="answer">ใช้ได้ 1 เครื่องเท่านั้น ไม่สามารถเชื่อมข้อมูลข้ามเครื่องได้ ถ้าต้องการหลายเครื่อง/ทีมขาย ต้องแพ็กเกจ 699 บาท/ปี</div>
+    </details>
+    <details>
+      <summary>8. ดูสถิติย้อนหลังได้ไหม</summary>
+      <div class="answer">เห็นได้แค่ยอดขาย "วันนี้" เท่านั้น ดูย้อนหลัง (เมื่อวาน/7 วัน/รายเดือน) ไม่ได้ ต้องอัพเกรดเป็น 199 บาท</div>
+    </details>
+    <details>
+      <summary>9. รูปสรุปยอดที่แชร์ มีโฆษณาติดไหม</summary>
+      <div class="answer">มีครับ รูปที่แชร์จากแพ็กเกจฟรีจะมีชื่อแอป + แท็กไลน์ + ช่องทางดาวน์โหลดต่อท้ายเสมอ เป็นแบบนี้เฉพาะแพ็กเกจฟรี อัพเกรดแล้วโฆษณาจะหายไปอัตโนมัติ</div>
+    </details>
+    <details>
+      <summary>10. อัพเกรดยังไง ต้องเสียข้อมูลเดิมไหม</summary>
+      <div class="answer">ไม่เสียข้อมูลเดิมแน่นอน อัพเกรดแค่กรอกโค้ดปลดล็อกในหน้าตั้งค่า ข้อมูลเมนู/ยอดขายเดิมอยู่ครบ แค่ปลดล็อกฟีเจอร์เพิ่มเข้ามาทันที</div>
+    </details>
+  </section>
+
+  <section class="tier-section" id="p199">
+    <h2 class="tier-title">แพ็กเกจ 199 บาท (จ่ายครั้งเดียว)</h2>
+
+    <details open>
+      <summary>1. 199 บาทจ่ายครั้งเดียวจริงไหม ไม่มีรายเดือน/รายปีซ้ำ</summary>
+      <div class="answer">จ่ายครั้งเดียวจริง ใช้ได้ตลอดไปบนเครื่องที่ปลดล็อก (lifetime) ไม่มีเก็บซ้ำรายเดือนหรือรายปี</div>
+    </details>
+    <details>
+      <summary>2. ได้อะไรเพิ่มจากแพ็กเกจฟรีบ้าง</summary>
+      <div class="answer">ได้ทุกอย่างในฟรี บวกเพิ่ม: ปลดล็อกสเกลไม่จำกัด, backup/restore, ตั้งรหัสผ่านป้องกันหน้าตั้งค่า, ดูสถิติย้อนหลังไม่จำกัด, ระบบค้างจ่ายเต็มรูปแบบ, export รายงาน, ไม่มีโฆษณาติดรูปแชร์</div>
+    </details>
+    <details>
+      <summary>3. เมนูสินค้ากับออเดอร์ต่อวันไม่จำกัดจริงไหม</summary>
+      <div class="answer">ไม่จำกัดจริง ใส่เมนูกี่รายการก็ได้ ขายกี่ออเดอร์ต่อวันก็ได้ ไม่มีเพดานเหมือนแพ็กเกจฟรี</div>
+    </details>
+    <details>
+      <summary>4. สำรองข้อมูลทำงานยังไง กู้คืนข้อมูลยังไง</summary>
+      <div class="answer">กดสำรองข้อมูลได้ทุกเมื่อ ระบบจะดาวน์โหลดไฟล์สำรองข้อมูลให้ทันที ถ้าเครื่องหายหรือเปลี่ยนเครื่อง เอาไฟล์นี้มากู้คืนได้ครบ ย้ายข้อมูลข้ามเครื่องเองได้ด้วย</div>
+    </details>
+    <details>
+      <summary>5. ตั้งรหัสผ่านป้องกันหน้าตั้งค่าทำไมสำคัญ</summary>
+      <div class="answer">กันคนอื่นที่หยิบเครื่องไปใช้ (ลูกน้อง/ลูกค้า) เข้าไปแก้เมนู ราคา หรือลบข้อมูลโดยไม่ได้ตั้งใจหรือไม่ได้รับอนุญาต เป็นฟีเจอร์ความปลอดภัยของร้าน</div>
+    </details>
+    <details>
+      <summary>6. ดูสถิติย้อนหลังได้ไกลแค่ไหน</summary>
+      <div class="answer">ดูได้ทั้งเมื่อวาน, 7 วัน, เดือนนี้ หรือเลือกช่วงวันที่เองก็ได้ พร้อมยอดขายรายชั่วโมง ยอดตามสินค้า และสินค้าขายดี</div>
+    </details>
+    <details>
+      <summary>7. ระบบค้างจ่ายเต็มรูปแบบต่างจากฟรียังไง</summary>
+      <div class="answer">ฟรีบันทึกค้างจ่ายได้พื้นฐาน แต่ 199 มีตัวเตือนเห็นชัดในหน้าขาย (กรอบแดง+⚠️) แจ้งเตือนอัตโนมัติถ้าค้างข้ามรอบ/ข้ามวัน และปิดยอดค้างจ่ายเลือกวิธีจ่ายจริงตอนลูกค้ามาจ่ายได้ ยกเลิกได้ถ้ายังไม่จ่ายจริง</div>
+    </details>
+    <details>
+      <summary>8. ส่งออกรายงานได้เป็นไฟล์อะไรบ้าง เอาไปทำอะไรต่อได้</summary>
+      <div class="answer">ส่งออกได้ทั้งไฟล์ PDF (รายวัน/รายเดือน/สรุปค้างจ่าย/สินค้าขายดี), CSV/Excel และเชื่อมต่อ Google ชีตส่งออกยอดขายอัตโนมัติได้ เหมาะเอาไปทำบัญชีหรือส่งต่อนักบัญชี</div>
+    </details>
+    <details>
+      <summary>9. ใช้ได้กี่เครื่อง เชื่อมต่อทีมขายได้ไหม</summary>
+      <div class="answer">ยังใช้ได้เครื่องเดียวเหมือนฟรี ไม่รวมการเชื่อมต่อหลายเครื่อง ถ้าต้องการทีมขายหลายคน/หลายตลาด ต้องอัพเกรดเป็น 699 บาท/ปี</div>
+    </details>
+    <details>
+      <summary>10. จ่ายยังไง ได้โค้ดปลดล็อกยังไง ใช้ซ้ำได้ไหมถ้าเปลี่ยนเครื่อง</summary>
+      <div class="answer">แจ้งชำระเงินผ่าน LINE OA จะได้รับโค้ดปลดล็อกรูปแบบ SM-XXXX-XXXX มากรอกในหน้าตั้งค่า ถ้าลงแอปใหม่หรือเปลี่ยนเครื่อง กรอกโค้ดเดิมซ้ำได้ ระบบจะกู้คืนสิทธิ์ให้อัตโนมัติ</div>
+    </details>
+  </section>
+
+  <section class="tier-section" id="p699">
+    <h2 class="tier-title">แพ็กเกจ 699 บาท/ปี (ทีม)</h2>
+
+    <details open>
+      <summary>1. 699 บาท/ปี คุ้มยังไง</summary>
+      <div class="answer">เฉลี่ยไม่ถึงวันละ 2 บาท ถูกกว่าค่าแผง 1 วันมาก แลกกับการเห็นยอดขายทุกตลาด/ทุกลูกน้องได้ทันที โดยไม่ต้องไปนั่งเฝ้าเอง</div>
+    </details>
+    <details>
+      <summary>2. ใครควรใช้แพ็กเกจนี้</summary>
+      <div class="answer">เจ้าของที่มีลูกน้องไปขายหลายตลาด, ครอบครัวแบ่งกันขาย, หรือใครก็ตามที่อยากมองเห็นยอดขายจากที่บ้านโดยไม่ต้องอยู่หน้าร้านเอง</div>
+    </details>
+    <details>
+      <summary>3. ถ้าอินเทอร์เน็ตหลุดระหว่างขายของ ข้อมูลจะหายไหม</summary>
+      <div class="answer">ไม่หายครับ ระบบบันทึกยอดขายไว้ในเครื่องก่อนเสมอ พอเน็ตกลับมาจะอัปเดตเข้าระบบทีมให้อัตโนมัติ ขายต่อได้ตามปกติแม้เน็ตหลุดชั่วคราว</div>
+    </details>
+    <details>
+      <summary>4. ต่อกี่เครื่องได้ จำกัดจำนวนคนขายไหม</summary>
+      <div class="answer">ไม่จำกัดจำนวนเครื่องและไม่จำกัดจำนวนคนขาย แค่บอกรหัสทีมให้เครื่องอื่นกรอกก็เข้าร่วมได้ทันที เพิ่ม/จัดการรายชื่อผู้ขายได้ตามจริง แต่ละคนเลือกชื่อตัวเองก่อนเริ่มขายได้ทุกกะ</div>
+    </details>
+    <details>
+      <summary>5. ถ้าหลายคนขายพร้อมกัน ข้อมูลจะชนกันไหม</summary>
+      <div class="answer">ไม่ต้องกังวลครับ ระบบจัดการให้อัตโนมัติเบื้องหลัง ถ้ามีการแก้ไขหรือลบรายการพร้อมกันจากหลายเครื่อง ระบบจะตรวจสอบและปรับให้ถูกต้องเองเสมอ ไม่ต้องคอยเช็คหรือแก้ไขเอง</div>
+    </details>
+    <details>
+      <summary>6. ดูยอดขายแยกรายคนได้ไหม</summary>
+      <div class="answer">ได้ หน้าสถิติแยกยอดขายตามชื่อผู้ขายอัตโนมัติ ดูได้ว่าใครขายเท่าไหร่ในแต่ละช่วง</div>
+    </details>
+    <details>
+      <summary>7. หน้าดูยอดขายสำหรับเจ้าของคืออะไร ต้องติดตั้งอะไรเพิ่มไหม</summary>
+      <div class="answer">เป็นหน้าดูยอดขายแบบเรียลไทม์แยกต่างหาก เปิดจากมือถือ/คอมที่บ้านได้เลย ไม่ต้องติดตั้งอะไรเพิ่ม แค่ใส่รหัสทีมก็เห็นยอดขายวันนี้ ยอดรับแล้ว ยอดค้างจ่าย จำนวนรายการ ออเดอร์ล่าสุด และรอบขายที่ปิดแล้วของทุกเครื่องในทีม (ดูได้อย่างเดียว แก้ไขไม่ได้ ปลอดภัย)</div>
+    </details>
+    <details>
+      <summary>8. ลูกน้องเห็น/แก้ไขข้อมูลได้แค่ไหน ปลอดภัยไหม</summary>
+      <div class="answer">ลูกน้องที่เข้าร่วมทีมด้วยรหัสทีมเห็นและบันทึกยอดขายได้ตามปกติเหมือนเครื่องหลัก แต่ฝั่งเจ้าของสามารถดูผ่านหน้ายอดขายสำหรับเจ้าของแบบดูได้อย่างเดียวได้เพิ่ม เพื่อตรวจสอบโดยไม่ต้องพึ่งการรายงานจากลูกน้อง</div>
+    </details>
+    <details>
+      <summary>9. หมดปีแล้วต้องทำยังไง ราคาต่ออายุจะขึ้นไหม</summary>
+      <div class="answer">ต่ออายุ 699 บาท/ปีเพื่อใช้ต่อได้ตามปกติ ปีถัดไปราคาอาจปรับสำหรับสมาชิกใหม่ แต่ราคาจะถูกล็อกไว้สำหรับคนที่ซื้อตั้งแต่ต้น — ไม่ต้องกลัวลืมต่ออายุ ระบบจะแจ้งเตือนล่วงหน้าให้ก่อนหมดอายุที่ 1 เดือน, 15 วัน, 7 วัน, 5 วัน, 3 วัน, 2 วัน และ 1 วัน</div>
+    </details>
+    <details>
+      <summary>10. ถ้าร้านที่เชื่อมต่อพร้อมกันเยอะมากจะมีปัญหาไหม</summary>
+      <div class="answer">ระบบรองรับร้านที่เชื่อมต่อพร้อมกันได้จำนวนมากในการใช้งานทั่วไป ถ้าเข้าใกล้หลักสิบร้านพร้อมกันจริงจัง ทีมงานมีแผนเพิ่มความจุรองรับไว้แล้วโดยไม่กระทบผู้ใช้เดิม</div>
+    </details>
+  </section>
+
+  <footer>
+    เนื้อหานี้ปรับสำนวนให้เข้ากับน้ำเสียงของ June ได้ตามธรรมชาติก่อนนำไปใช้จริงใน LINE OA / landing page
+  </footer>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab-btn');
+  const sections = document.querySelectorAll('.tier-section');
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
