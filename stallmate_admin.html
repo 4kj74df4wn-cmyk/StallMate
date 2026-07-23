@@ -61,11 +61,27 @@
     <div class="card">
       <label>จำนวนโค้ดที่ต้องการสร้าง</label>
       <input type="number" id="qty" value="1" min="1" max="30">
-      <label>แพ็กเกจ</label>
-      <select id="tierSel">
-        <option value="paid_once">199 บาท — จ่ายครั้งเดียว (ใช้ได้ตลอดชีพ)</option>
-        <option value="paid_annual">699 บาท/ปี — แพ็กเกจทีม (หมดอายุใน 365 วัน)</option>
+      <label>ประเภทโค้ด</label>
+      <select id="codeKindSel" onchange="onCodeKindChange()">
+        <option value="package">แพ็กเกจหลัก (199 / 699 ต่อปี)</option>
+        <option value="addon">Add-on (Stock / P&amp;L) — เสริมแพ็กเกจเดิม</option>
       </select>
+      <div id="packageTierWrap">
+        <label>แพ็กเกจ</label>
+        <select id="tierSel">
+          <option value="paid_once">199 บาท — จ่ายครั้งเดียว (ใช้ได้ตลอดชีพ)</option>
+          <option value="paid_annual">699 บาท/ปี — แพ็กเกจทีม (หมดอายุใน 365 วัน)</option>
+        </select>
+      </div>
+      <div id="addonTierWrap" style="display:none">
+        <label>ชนิด Add-on</label>
+        <select id="addonTierSel">
+          <option value="addon_stock">Stock/ต้นทุน (+100 บาท)</option>
+          <option value="addon_pl">P&amp;L รายงานกำไรขาดทุน (+100 บาท)</option>
+          <option value="addon_bundle">Bundle Stock+P&amp;L พร้อมกัน (+150 บาท)</option>
+        </select>
+        <div class="hint" style="margin-top:0">โค้ด Add-on ไม่มีวันหมดอายุ ไม่แตะแพ็กเกจหลักที่ร้านมีอยู่ (199/699) — ใช้เสริมเปิดโมดูล Stock/P&amp;L เท่านั้น</div>
+      </div>
       <button onclick="generateCodes()" id="genBtn">✨ สร้างโค้ด</button>
       <div class="err" id="genErr"></div>
       <div id="resultBox" style="display:none">
@@ -156,6 +172,13 @@ function randSeg(len){
 }
 function genCode(){ return 'SM-'+randSeg(4)+'-'+randSeg(4); }
 
+// สลับฟอร์มระหว่าง "แพ็กเกจหลัก" กับ "Add-on" — คนละชุด field คนละความหมายราคา
+function onCodeKindChange(){
+  const isAddon=document.getElementById('codeKindSel').value==='addon';
+  document.getElementById('packageTierWrap').style.display=isAddon?'none':'block';
+  document.getElementById('addonTierWrap').style.display=isAddon?'block':'none';
+}
+
 auth.onAuthStateChanged(user=>{
   if(user){
     document.getElementById('loginCard').style.display='none';
@@ -186,7 +209,10 @@ function doLogout(){ auth.signOut(); }
 
 async function generateCodes(){
   const qty=Math.max(1,Math.min(30,parseInt(document.getElementById('qty').value)||1));
-  const tier=document.getElementById('tierSel').value;
+  // v7.8.41: รองรับโค้ด Add-on (Stock/P&L/Bundle) แยกจากแพ็กเกจหลัก — ใช้ field "tier" เดิม (ค่า addon_stock/addon_pl/addon_bundle)
+  // เพื่อให้ผ่าน Security Rules เดิมได้เลยโดยไม่ต้อง publish rules ใหม่ (rule เช็คแค่ว่ามี field tier/createdAt/redeemed อยู่ ไม่ได้ล็อกค่าตายตัว)
+  const isAddon=document.getElementById('codeKindSel').value==='addon';
+  const tier=isAddon ? document.getElementById('addonTierSel').value : document.getElementById('tierSel').value;
   const btn=document.getElementById('genBtn');
   const errEl=document.getElementById('genErr');
   errEl.style.display='none';
@@ -194,7 +220,8 @@ async function generateCodes(){
   btn.textContent='กำลังสร้าง...';
   const now=new Date();
   const createdAt=now.toISOString();
-  const expiresAt=tier==='paid_annual' ? new Date(now.getTime()+365*24*60*60*1000).toISOString() : null;
+  // Add-on ไม่มีวันหมดอายุ (perpetual เหมือน paid_once) — มีแค่แพ็กเกจทีม 699/ปี เท่านั้นที่หมดอายุ
+  const expiresAt=(!isAddon&&tier==='paid_annual') ? new Date(now.getTime()+365*24*60*60*1000).toISOString() : null;
   const created=[];
   try{
     for(let i=0;i<qty;i++){
@@ -230,7 +257,8 @@ async function loadRecent(){
     const val=snap.val()||{};
     const rows=Object.keys(val).sort().reverse().map(code=>{
       const r=val[code];
-      const tierLbl=r.tier==='paid_annual'?'699/ปี':'199 ครั้งเดียว';
+      const ADDON_LBL={addon_stock:'Add-on Stock (+100)',addon_pl:'Add-on P&L (+100)',addon_bundle:'Add-on Bundle (+150)'};
+      const tierLbl=ADDON_LBL[r.tier] || (r.tier==='paid_annual'?'699/ปี':'199 ครั้งเดียว');
       let status=r.redeemed?'<span class="st-yes">ใช้แล้ว</span>':'<span class="st-no">ยังไม่ใช้</span>';
       if(r.revoked) status='<span class="st-no">เพิกถอนแล้ว 🚫</span>';
       const bound=r.boundTo||'-';
