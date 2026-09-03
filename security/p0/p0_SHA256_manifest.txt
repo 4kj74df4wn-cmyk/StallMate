@@ -1,0 +1,18 @@
+StallMate P0 Phase 2A — SHA-256 MANIFEST (Phase 2A Foundation PASS; §9.1 authorized)
+Generated: 2026-09-03T10:33:50Z
+(covers all Phase 2A artifacts except this manifest itself)
+========================================================
+eab238515410538396d3c2fdaad4a92c745e7933a18b8b9b84945447c593528b  StallMate_SECURITY_P0_Phase2A_Foundation.md
+84ded11e8b84fd7af28df437ea1d1e92d9f4aa02ce46e752753e5041d496000d  StallMate_SECURITY_P0_Phase2A_9.1_BranchPrep.md
+5009432b8e3dc29776c5af0a1952cb9f7cee58946cce4e2e7f73d570f57298cb  p0_rulesA_secure_transitional.rules.json
+09d06066b50591add8243c67f3f03455ddb4d1bfeb8c1ee63708d6daaf8d0e23  p0_rulesB_secure_fallback.rules.json
+cab5169ba928d5cc069f721687ca9dae785493b4c55c69dbd77a48de0693cdcf  p0_rules_forwardfix_denyallwrites.rules.json
+81209215c1e3c1e3c965b53c36dd111692b12c665d7db044f9cc72665c2282ae  p0_emulator_tests.js
+b6bb8c5f5fe029843428f95db78f3cad89cc76f10a7723a2de997f06b3548506  p0_emulator_results.txt
+4f0702445ac0178267e6269dd2388e342238fab9c0235b7b37bc1dc097b77a68  p0_emulator_results_raw.txt
+4183d7d5ed22167b65fa433ba0703e879006bb1f0f2defc25a229ad6804e0f68  p0_path_inventory.md
+b6392d2f6e7a8ee6b1baa605b7025373f4ea952064aaede9740f04b0eeb17f98  p0_emulator_test_matrix.md
+b61c06b4191790089fcfcb64e83c0411c67da666365156241ffbf341b3e8d140  StallMate_SECURITY_P0_Phase1_HOLD2_CORRECTED.md
+--- frozen source baselines (unchanged proof) ---
+523df939fae65166c30fce6394f12a7b780927cdcee4a3e02836a3388a9cb58e  stallmate_v7.9.8.13.html
+d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11  stallmate_v7.9.8.14.html

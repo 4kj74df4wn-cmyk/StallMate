@@ -1,0 +1,76 @@
+{
+  "//": "StallMate P0 Phase 2A — RULES B (secure fallback). STAGING/EMULATOR DESIGN ONLY. Phase 2A Foundation PASS (HOLD-3/4/5 closed). Comment-only label update; rule logic unchanged. Includes HOLD-5 trialRegistry no-takeover write predicate. Record-boundary predicates only (no ancestor/generic write). Schema-aware .validate on the sell-critical records it permits (salesRecords/sessions/checkins) so field-deletion / incomplete replacement is DENY. More conservative than A: branches/staff/config are READ-ONLY for owner in fallback; NO deletes anywhere in rooms/*; anonymous fully denied. Never reverts to insecure 1339b716.",
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "roomOwners": {
+      "$roomCode": { ".read": "auth != null && auth.uid === data.val()", ".write": false }
+    },
+
+    "rooms": {
+      "$roomCode": {
+        ".read": "auth != null && auth.uid === root.child('roomOwners').child($roomCode).val()",
+
+        "salesRecords": {
+          "$saleId": {
+            ".write": "auth != null && auth.uid === root.child('roomOwners').child($roomCode).val() && newData.exists()",
+            ".validate": "(newData.hasChild('total') || newData.hasChild('totalSatang')) && (!data.hasChild('total') || newData.hasChild('total')) && (!data.hasChild('totalSatang') || newData.hasChild('totalSatang')) && (!data.hasChild('cashAmount') || newData.hasChild('cashAmount')) && (!data.hasChild('cashSatang') || newData.hasChild('cashSatang')) && (!data.hasChild('scanAmount') || newData.hasChild('scanAmount')) && (!data.hasChild('scanSatang') || newData.hasChild('scanSatang')) && (!data.hasChild('thaiAmount') || newData.hasChild('thaiAmount')) && (!data.hasChild('thaiSatang') || newData.hasChild('thaiSatang')) && (!data.hasChild('creditAmount') || newData.hasChild('creditAmount')) && (!data.hasChild('creditSatang') || newData.hasChild('creditSatang')) && (!data.hasChild('price') || newData.hasChild('price')) && (!data.hasChild('priceSatang') || newData.hasChild('priceSatang')) && (!data.hasChild('orderId') || newData.hasChild('orderId')) && (!data.hasChild('id') || newData.hasChild('id')) && (!data.hasChild('time') || newData.hasChild('time'))"
+          }
+        },
+        "deletedSales": {
+          "$key": {
+            ".write": "auth != null && auth.uid === root.child('roomOwners').child($roomCode).val() && newData.exists() && !data.exists()",
+            ".validate": "newData.hasChild('total') || newData.hasChild('totalSatang') || newData.hasChild('voidedAt')"
+          }
+        },
+        "sessions": {
+          "$sessionId": {
+            ".write": "auth != null && auth.uid === root.child('roomOwners').child($roomCode).val() && newData.exists()",
+            ".validate": "newData.hasChild('id') && (!data.hasChild('id') || newData.hasChild('id')) && (!data.hasChild('roundId') || newData.hasChild('roundId')) && (!data.hasChild('startedAt') || newData.hasChild('startedAt')) && (!data.hasChild('open') || newData.hasChild('open'))"
+          }
+        },
+        "checkins": {
+          "$day": {
+            "$checkinId": {
+              ".write": "auth != null && auth.uid === root.child('roomOwners').child($roomCode).val() && newData.exists()",
+              ".validate": "newData.hasChild('deviceId') && (!data.hasChild('deviceId') || newData.hasChild('deviceId')) && (!data.hasChild('at') || newData.hasChild('at'))"
+            }
+          }
+        }
+      }
+    },
+
+    "trialRegistry": {
+      "$deviceId": {
+        ".read": "auth != null && data.child('boundUid').val() === auth.uid",
+        ".write": "auth != null && newData.exists() && newData.child('boundUid').val() === auth.uid && (!data.exists() || data.child('boundUid').val() === auth.uid)"
+      }
+    },
+
+    "licenses": {
+      ".read": false,
+      ".write": false,
+      "$code": {
+        ".read": "auth != null && data.child('boundTo').val() === auth.uid",
+        ".write": false
+      }
+    },
+
+    "shopProfiles": {
+      "$ownerId": {
+        ".read": "auth != null && auth.uid === $ownerId",
+        ".write": "auth != null && auth.uid === $ownerId && newData.exists()"
+      }
+    },
+
+    "config":          { ".read": "auth != null", "$key": { ".write": false } },
+    "affiliateConfig": { ".read": "auth != null", "$key": { ".write": false } },
+    "pilotOverrides":  { "$roomCode": { ".read": "auth != null && auth.uid === root.child('roomOwners').child($roomCode).val()", ".write": false } },
+    "affiliates":      { ".read": false, "$id": { ".read": "auth != null && data.child('ownerId').val() === auth.uid", ".write": false } },
+    "referrals":       { ".read": false, "$id": { ".read": "auth != null && data.child('refereeId').val() === auth.uid", ".write": false } },
+    "dailyLoads": {
+      "$date": { "$ownerId": { ".read": "auth != null && auth.uid === $ownerId", ".write": "auth != null && auth.uid === $ownerId && newData.exists()" } }
+    }
+  }
+}

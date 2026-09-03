@@ -1,0 +1,382 @@
+
+==================== RULES A (secure transitional) ====================
+  PASS [anon] read rooms/BBMANN/salesRecords = DENY
+[2026-09-03T10:33:44.542Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/x failed: permission_denied 
+  PASS [anon] write salesRecords/x = DENY
+[2026-09-03T10:33:44.577Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [anon] delete salesRecords/s1 = DENY
+[2026-09-03T10:33:44.628Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [anon] delete whole room = DENY
+  PASS [anon] read licenses/CODE2 = DENY
+  PASS [anon] read trialRegistry/dev1 = DENY
+  PASS [attacker] read rooms/BBMANN/salesRecords = DENY
+[2026-09-03T10:33:44.799Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/x failed: permission_denied 
+  PASS [attacker] write salesRecords/x = DENY
+[2026-09-03T10:33:44.839Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [attacker] delete salesRecords/s1 = DENY
+[2026-09-03T10:33:44.886Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [attacker] delete salesRecords/s1/cashSatang = DENY
+[2026-09-03T10:33:44.919Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1/roundId failed: permission_denied 
+  PASS [attacker] delete session field = DENY
+[2026-09-03T10:33:44.954Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1/at failed: permission_denied 
+  PASS [attacker] delete checkin field = DENY
+[2026-09-03T10:33:44.994Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/trial failed: permission_denied 
+  PASS [attacker] delete branch trial = DENY
+[2026-09-03T10:33:45.023Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/secondaryPasswordHash failed: permission_denied 
+  PASS [attacker] delete staff field = DENY
+[2026-09-03T10:33:45.050Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/evil failed: permission_denied 
+  PASS [attacker] write unknown room child = DENY
+[2026-09-03T10:33:45.072Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [attacker] delete whole room = DENY
+[2026-09-03T10:33:45.097Z]  @firebase/database: FIREBASE WARNING: set at /licenses/CODE1 failed: permission_denied 
+  PASS [attacker] direct redeem licenses/CODE1 = DENY
+  PASS [attacker] enumerate licenses = DENY
+[2026-09-03T10:33:45.149Z]  @firebase/database: FIREBASE WARNING: set at /shopProfiles/ownerUid_BBMANN failed: permission_denied 
+  PASS [attacker] write shopProfiles/OWNER = DENY
+[2026-09-03T10:33:45.173Z]  @firebase/database: FIREBASE WARNING: set at /config/teamPricingEra failed: permission_denied 
+  PASS [attacker] write global config child = DENY
+  PASS [attacker] read other-device trial = DENY
+  PASS [owner] read rooms/BBMANN = ALLOW
+  PASS [owner] read OTHER business = DENY
+  PASS [owner] read own license CODE2 = ALLOW
+  PASS [owner] read own trial dev1 = ALLOW
+  PASS [owner] read other trial dev2 = DENY
+  PASS [owner] update own trial preserve boundUid = ALLOW
+[2026-09-03T10:33:45.366Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [attacker] overwrite owner device + change boundUid = DENY
+[2026-09-03T10:33:45.389Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [attacker] modify owner device preserving owner boundUid = DENY
+[2026-09-03T10:33:45.409Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [owner] change own trial boundUid to another uid = DENY
+  PASS [attacker] create new unclaimed device bound to self = ALLOW
+[2026-09-03T10:33:45.454Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/devAnon failed: permission_denied 
+  PASS [anon] create trial device bound to self = DENY
+[2026-09-03T10:33:45.476Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [anon] update owner trial device = DENY
+[2026-09-03T10:33:45.497Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [anon] delete owner trial device = DENY
+[2026-09-03T10:33:45.520Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [owner] whole-record delete own trial device = DENY
+[2026-09-03T10:33:45.541Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1/boundUid failed: permission_denied 
+  PASS [owner] nested delete trial boundUid = DENY
+  PASS [owner] create MODERN sale = ALLOW
+  PASS [owner] create LEGACY sale = ALLOW
+  PASS [owner] edit MODERN sale keep all fields = ALLOW
+  PASS [owner] edit LEGACY sale keep all fields = ALLOW
+  PASS [owner] update single leaf cashSatang value = ALLOW
+  PASS [owner] append deletedSales/x = ALLOW
+  PASS [owner] update session keep fields = ALLOW
+  PASS [owner] write new checkin = ALLOW
+  PASS [owner] write own shopProfile = ALLOW
+[2026-09-03T10:33:45.772Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [owner] HARD-DELETE sale s1 = DENY
+[2026-09-03T10:33:45.793Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [owner] delete salesRecords/s1/cashSatang = DENY
+[2026-09-03T10:33:45.817Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [owner] set salesRecords/s1/cashSatang=null = DENY
+[2026-09-03T10:33:45.853Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/total failed: permission_denied 
+  PASS [owner] set salesRecords/s1/total=null (required money) = DENY
+[2026-09-03T10:33:45.877Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [owner] replace sale s1 with incomplete object = DENY
+[2026-09-03T10:33:45.899Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/sLeg/cashAmount failed: permission_denied 
+  PASS [owner] delete legacy money field cashAmount = DENY
+[2026-09-03T10:33:45.920Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/deletedSales/d1 failed: permission_denied 
+  PASS [owner] mutate existing deletedSales/d1 = DENY
+[2026-09-03T10:33:45.943Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1/roundId failed: permission_denied 
+  PASS [owner] delete nested session field roundId = DENY
+[2026-09-03T10:33:45.971Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1/at failed: permission_denied 
+  PASS [owner] delete nested checkin field at = DENY
+[2026-09-03T10:33:45.993Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1 failed: permission_denied 
+  PASS [owner] delete session se1 (whole) = DENY
+[2026-09-03T10:33:46.014Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1 failed: permission_denied 
+  PASS [owner] delete checkin c1 (whole) = DENY
+[2026-09-03T10:33:46.034Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/config/maxBranches failed: permission_denied 
+  PASS [owner] delete config child = DENY
+[2026-09-03T10:33:46.050Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] delete whole room = DENY
+[2026-09-03T10:33:46.073Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/evil failed: permission_denied 
+  PASS [owner] write unknown room child = DENY
+[2026-09-03T10:33:46.099Z]  @firebase/database: FIREBASE WARNING: set at /licenses/CODE2 failed: permission_denied 
+  PASS [owner] client write license CODE2 = DENY
+[2026-09-03T10:33:46.144Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] multi-loc update w/ nested null (sale field) = DENY
+[2026-09-03T10:33:46.170Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] multi-loc update w/ nested null (session field) = DENY
+  PASS [owner] update branch menu (replace) = ALLOW
+  PASS [owner] soft-deactivate branch meta/active=false = ALLOW
+  PASS [owner] update config child maxBranches = ALLOW
+  PASS [owner] soft-deactivate staff active=false = ALLOW
+[2026-09-03T10:33:46.286Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/trial failed: permission_denied 
+  PASS [owner] delete branches/b1/trial = DENY
+[2026-09-03T10:33:46.306Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/menu failed: permission_denied 
+  PASS [owner] delete branches/b1/menu = DENY
+[2026-09-03T10:33:46.328Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1 failed: permission_denied 
+  PASS [owner] delete branch b1 (whole) = DENY
+[2026-09-03T10:33:46.345Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/secondaryPasswordHash failed: permission_denied 
+  PASS [owner] delete staff protected field secondaryPasswordHash = DENY
+[2026-09-03T10:33:46.363Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1 failed: permission_denied 
+  PASS [owner] delete staff st1 (whole) = DENY
+  ---- RULES A (secure transitional): 71/71 PASS ----
+
+==================== RULES B (secure fallback) ====================
+  PASS [anon] read rooms/BBMANN/salesRecords = DENY
+[2026-09-03T10:33:46.463Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/x failed: permission_denied 
+  PASS [anon] write salesRecords/x = DENY
+[2026-09-03T10:33:46.485Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [anon] delete salesRecords/s1 = DENY
+[2026-09-03T10:33:46.521Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [anon] delete whole room = DENY
+  PASS [anon] read licenses/CODE2 = DENY
+  PASS [anon] read trialRegistry/dev1 = DENY
+  PASS [attacker] read rooms/BBMANN/salesRecords = DENY
+[2026-09-03T10:33:46.674Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/x failed: permission_denied 
+  PASS [attacker] write salesRecords/x = DENY
+[2026-09-03T10:33:46.707Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [attacker] delete salesRecords/s1 = DENY
+[2026-09-03T10:33:46.733Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [attacker] delete salesRecords/s1/cashSatang = DENY
+[2026-09-03T10:33:46.754Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1/roundId failed: permission_denied 
+  PASS [attacker] delete session field = DENY
+[2026-09-03T10:33:46.778Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1/at failed: permission_denied 
+  PASS [attacker] delete checkin field = DENY
+[2026-09-03T10:33:46.799Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/trial failed: permission_denied 
+  PASS [attacker] delete branch trial = DENY
+[2026-09-03T10:33:46.821Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/secondaryPasswordHash failed: permission_denied 
+  PASS [attacker] delete staff field = DENY
+[2026-09-03T10:33:46.842Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/evil failed: permission_denied 
+  PASS [attacker] write unknown room child = DENY
+[2026-09-03T10:33:46.865Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [attacker] delete whole room = DENY
+[2026-09-03T10:33:46.888Z]  @firebase/database: FIREBASE WARNING: set at /licenses/CODE1 failed: permission_denied 
+  PASS [attacker] direct redeem licenses/CODE1 = DENY
+  PASS [attacker] enumerate licenses = DENY
+[2026-09-03T10:33:46.932Z]  @firebase/database: FIREBASE WARNING: set at /shopProfiles/ownerUid_BBMANN failed: permission_denied 
+  PASS [attacker] write shopProfiles/OWNER = DENY
+[2026-09-03T10:33:46.949Z]  @firebase/database: FIREBASE WARNING: set at /config/teamPricingEra failed: permission_denied 
+  PASS [attacker] write global config child = DENY
+  PASS [attacker] read other-device trial = DENY
+  PASS [owner] read rooms/BBMANN = ALLOW
+  PASS [owner] read OTHER business = DENY
+  PASS [owner] read own license CODE2 = ALLOW
+  PASS [owner] read own trial dev1 = ALLOW
+  PASS [owner] read other trial dev2 = DENY
+  PASS [owner] update own trial preserve boundUid = ALLOW
+[2026-09-03T10:33:47.102Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [attacker] overwrite owner device + change boundUid = DENY
+[2026-09-03T10:33:47.118Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [attacker] modify owner device preserving owner boundUid = DENY
+[2026-09-03T10:33:47.135Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [owner] change own trial boundUid to another uid = DENY
+  PASS [attacker] create new unclaimed device bound to self = ALLOW
+[2026-09-03T10:33:47.197Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/devAnon failed: permission_denied 
+  PASS [anon] create trial device bound to self = DENY
+[2026-09-03T10:33:47.233Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [anon] update owner trial device = DENY
+[2026-09-03T10:33:47.278Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [anon] delete owner trial device = DENY
+[2026-09-03T10:33:47.309Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [owner] whole-record delete own trial device = DENY
+[2026-09-03T10:33:47.326Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1/boundUid failed: permission_denied 
+  PASS [owner] nested delete trial boundUid = DENY
+  PASS [owner] create MODERN sale = ALLOW
+  PASS [owner] create LEGACY sale = ALLOW
+  PASS [owner] edit MODERN sale keep all fields = ALLOW
+  PASS [owner] edit LEGACY sale keep all fields = ALLOW
+  PASS [owner] update single leaf cashSatang value = ALLOW
+  PASS [owner] append deletedSales/x = ALLOW
+  PASS [owner] update session keep fields = ALLOW
+  PASS [owner] write new checkin = ALLOW
+  PASS [owner] write own shopProfile = ALLOW
+[2026-09-03T10:33:47.569Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [owner] HARD-DELETE sale s1 = DENY
+[2026-09-03T10:33:47.590Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [owner] delete salesRecords/s1/cashSatang = DENY
+[2026-09-03T10:33:47.610Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [owner] set salesRecords/s1/cashSatang=null = DENY
+[2026-09-03T10:33:47.629Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/total failed: permission_denied 
+  PASS [owner] set salesRecords/s1/total=null (required money) = DENY
+[2026-09-03T10:33:47.650Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [owner] replace sale s1 with incomplete object = DENY
+[2026-09-03T10:33:47.685Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/sLeg/cashAmount failed: permission_denied 
+  PASS [owner] delete legacy money field cashAmount = DENY
+[2026-09-03T10:33:47.707Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/deletedSales/d1 failed: permission_denied 
+  PASS [owner] mutate existing deletedSales/d1 = DENY
+[2026-09-03T10:33:47.728Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1/roundId failed: permission_denied 
+  PASS [owner] delete nested session field roundId = DENY
+[2026-09-03T10:33:47.750Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1/at failed: permission_denied 
+  PASS [owner] delete nested checkin field at = DENY
+[2026-09-03T10:33:47.771Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1 failed: permission_denied 
+  PASS [owner] delete session se1 (whole) = DENY
+[2026-09-03T10:33:47.793Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1 failed: permission_denied 
+  PASS [owner] delete checkin c1 (whole) = DENY
+[2026-09-03T10:33:47.877Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/config/maxBranches failed: permission_denied 
+  PASS [owner] delete config child = DENY
+[2026-09-03T10:33:47.908Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] delete whole room = DENY
+[2026-09-03T10:33:47.928Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/evil failed: permission_denied 
+  PASS [owner] write unknown room child = DENY
+[2026-09-03T10:33:47.956Z]  @firebase/database: FIREBASE WARNING: set at /licenses/CODE2 failed: permission_denied 
+  PASS [owner] client write license CODE2 = DENY
+[2026-09-03T10:33:47.994Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] multi-loc update w/ nested null (sale field) = DENY
+[2026-09-03T10:33:48.020Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] multi-loc update w/ nested null (session field) = DENY
+[2026-09-03T10:33:48.041Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN/branches/b1 failed: permission_denied 
+  PASS [owner] update branch menu (replace) = DENY
+[2026-09-03T10:33:48.066Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/meta/active failed: permission_denied 
+  PASS [owner] soft-deactivate branch meta/active=false = DENY
+[2026-09-03T10:33:48.104Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/config/maxBranches failed: permission_denied 
+  PASS [owner] update config child maxBranches = DENY
+[2026-09-03T10:33:48.145Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/active failed: permission_denied 
+  PASS [owner] soft-deactivate staff active=false = DENY
+[2026-09-03T10:33:48.180Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/trial failed: permission_denied 
+  PASS [owner] delete branches/b1/trial = DENY
+[2026-09-03T10:33:48.210Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/menu failed: permission_denied 
+  PASS [owner] delete branches/b1/menu = DENY
+[2026-09-03T10:33:48.246Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1 failed: permission_denied 
+  PASS [owner] delete branch b1 (whole) = DENY
+[2026-09-03T10:33:48.277Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/secondaryPasswordHash failed: permission_denied 
+  PASS [owner] delete staff protected field secondaryPasswordHash = DENY
+[2026-09-03T10:33:48.303Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1 failed: permission_denied 
+  PASS [owner] delete staff st1 (whole) = DENY
+  ---- RULES B (secure fallback): 71/71 PASS ----
+
+==================== FORWARD-FIX (deny-all-writes) ====================
+  PASS [anon] read rooms/BBMANN/salesRecords = DENY
+[2026-09-03T10:33:48.428Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/x failed: permission_denied 
+  PASS [anon] write salesRecords/x = DENY
+[2026-09-03T10:33:48.469Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [anon] delete salesRecords/s1 = DENY
+[2026-09-03T10:33:48.505Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [anon] delete whole room = DENY
+  PASS [anon] read licenses/CODE2 = DENY
+  PASS [anon] read trialRegistry/dev1 = DENY
+  PASS [attacker] read rooms/BBMANN/salesRecords = DENY
+[2026-09-03T10:33:48.620Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/x failed: permission_denied 
+  PASS [attacker] write salesRecords/x = DENY
+[2026-09-03T10:33:48.638Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [attacker] delete salesRecords/s1 = DENY
+[2026-09-03T10:33:48.660Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [attacker] delete salesRecords/s1/cashSatang = DENY
+[2026-09-03T10:33:48.693Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1/roundId failed: permission_denied 
+  PASS [attacker] delete session field = DENY
+[2026-09-03T10:33:48.716Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1/at failed: permission_denied 
+  PASS [attacker] delete checkin field = DENY
+[2026-09-03T10:33:48.744Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/trial failed: permission_denied 
+  PASS [attacker] delete branch trial = DENY
+[2026-09-03T10:33:48.763Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/secondaryPasswordHash failed: permission_denied 
+  PASS [attacker] delete staff field = DENY
+[2026-09-03T10:33:48.782Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/evil failed: permission_denied 
+  PASS [attacker] write unknown room child = DENY
+[2026-09-03T10:33:48.802Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [attacker] delete whole room = DENY
+[2026-09-03T10:33:48.821Z]  @firebase/database: FIREBASE WARNING: set at /licenses/CODE1 failed: permission_denied 
+  PASS [attacker] direct redeem licenses/CODE1 = DENY
+  PASS [attacker] enumerate licenses = DENY
+[2026-09-03T10:33:48.882Z]  @firebase/database: FIREBASE WARNING: set at /shopProfiles/ownerUid_BBMANN failed: permission_denied 
+  PASS [attacker] write shopProfiles/OWNER = DENY
+[2026-09-03T10:33:48.907Z]  @firebase/database: FIREBASE WARNING: set at /config/teamPricingEra failed: permission_denied 
+  PASS [attacker] write global config child = DENY
+  PASS [attacker] read other-device trial = DENY
+  PASS [owner] read rooms/BBMANN = ALLOW
+  PASS [owner] read OTHER business = DENY
+  PASS [owner] read own license CODE2 = ALLOW
+  PASS [owner] read own trial dev1 = ALLOW
+  PASS [owner] read other trial dev2 = DENY
+[2026-09-03T10:33:49.043Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [owner] update own trial preserve boundUid = DENY
+[2026-09-03T10:33:49.060Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [attacker] overwrite owner device + change boundUid = DENY
+[2026-09-03T10:33:49.078Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [attacker] modify owner device preserving owner boundUid = DENY
+[2026-09-03T10:33:49.098Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [owner] change own trial boundUid to another uid = DENY
+[2026-09-03T10:33:49.117Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/devNewAtt failed: permission_denied 
+  PASS [attacker] create new unclaimed device bound to self = DENY
+[2026-09-03T10:33:49.135Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/devAnon failed: permission_denied 
+  PASS [anon] create trial device bound to self = DENY
+[2026-09-03T10:33:49.152Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [anon] update owner trial device = DENY
+[2026-09-03T10:33:49.167Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [anon] delete owner trial device = DENY
+[2026-09-03T10:33:49.183Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1 failed: permission_denied 
+  PASS [owner] whole-record delete own trial device = DENY
+[2026-09-03T10:33:49.200Z]  @firebase/database: FIREBASE WARNING: set at /trialRegistry/dev1/boundUid failed: permission_denied 
+  PASS [owner] nested delete trial boundUid = DENY
+[2026-09-03T10:33:49.217Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/sNew failed: permission_denied 
+  PASS [owner] create MODERN sale = DENY
+[2026-09-03T10:33:49.231Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/sLegNew failed: permission_denied 
+  PASS [owner] create LEGACY sale = DENY
+[2026-09-03T10:33:49.246Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [owner] edit MODERN sale keep all fields = DENY
+[2026-09-03T10:33:49.264Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/sLeg failed: permission_denied 
+  PASS [owner] edit LEGACY sale keep all fields = DENY
+[2026-09-03T10:33:49.280Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [owner] update single leaf cashSatang value = DENY
+[2026-09-03T10:33:49.297Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/deletedSales/x failed: permission_denied 
+  PASS [owner] append deletedSales/x = DENY
+[2026-09-03T10:33:49.315Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1 failed: permission_denied 
+  PASS [owner] update session keep fields = DENY
+[2026-09-03T10:33:49.338Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c2 failed: permission_denied 
+  PASS [owner] write new checkin = DENY
+[2026-09-03T10:33:49.356Z]  @firebase/database: FIREBASE WARNING: set at /shopProfiles/ownerUid_BBMANN failed: permission_denied 
+  PASS [owner] write own shopProfile = DENY
+[2026-09-03T10:33:49.381Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [owner] HARD-DELETE sale s1 = DENY
+[2026-09-03T10:33:49.410Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [owner] delete salesRecords/s1/cashSatang = DENY
+[2026-09-03T10:33:49.502Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/cashSatang failed: permission_denied 
+  PASS [owner] set salesRecords/s1/cashSatang=null = DENY
+[2026-09-03T10:33:49.547Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1/total failed: permission_denied 
+  PASS [owner] set salesRecords/s1/total=null (required money) = DENY
+[2026-09-03T10:33:49.568Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/s1 failed: permission_denied 
+  PASS [owner] replace sale s1 with incomplete object = DENY
+[2026-09-03T10:33:49.586Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/salesRecords/sLeg/cashAmount failed: permission_denied 
+  PASS [owner] delete legacy money field cashAmount = DENY
+[2026-09-03T10:33:49.602Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/deletedSales/d1 failed: permission_denied 
+  PASS [owner] mutate existing deletedSales/d1 = DENY
+[2026-09-03T10:33:49.621Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1/roundId failed: permission_denied 
+  PASS [owner] delete nested session field roundId = DENY
+[2026-09-03T10:33:49.640Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1/at failed: permission_denied 
+  PASS [owner] delete nested checkin field at = DENY
+[2026-09-03T10:33:49.692Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/sessions/se1 failed: permission_denied 
+  PASS [owner] delete session se1 (whole) = DENY
+[2026-09-03T10:33:49.723Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/checkins/2026-09-03/c1 failed: permission_denied 
+  PASS [owner] delete checkin c1 (whole) = DENY
+[2026-09-03T10:33:49.747Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/config/maxBranches failed: permission_denied 
+  PASS [owner] delete config child = DENY
+[2026-09-03T10:33:49.766Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] delete whole room = DENY
+[2026-09-03T10:33:49.788Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/evil failed: permission_denied 
+  PASS [owner] write unknown room child = DENY
+[2026-09-03T10:33:49.811Z]  @firebase/database: FIREBASE WARNING: set at /licenses/CODE2 failed: permission_denied 
+  PASS [owner] client write license CODE2 = DENY
+[2026-09-03T10:33:49.834Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] multi-loc update w/ nested null (sale field) = DENY
+[2026-09-03T10:33:49.859Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN failed: permission_denied 
+  PASS [owner] multi-loc update w/ nested null (session field) = DENY
+[2026-09-03T10:33:49.879Z]  @firebase/database: FIREBASE WARNING: update at /rooms/BBMANN/branches/b1 failed: permission_denied 
+  PASS [owner] update branch menu (replace) = DENY
+[2026-09-03T10:33:49.906Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/meta/active failed: permission_denied 
+  PASS [owner] soft-deactivate branch meta/active=false = DENY
+[2026-09-03T10:33:49.923Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/config/maxBranches failed: permission_denied 
+  PASS [owner] update config child maxBranches = DENY
+[2026-09-03T10:33:49.942Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/active failed: permission_denied 
+  PASS [owner] soft-deactivate staff active=false = DENY
+[2026-09-03T10:33:49.960Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/trial failed: permission_denied 
+  PASS [owner] delete branches/b1/trial = DENY
+[2026-09-03T10:33:49.981Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1/menu failed: permission_denied 
+  PASS [owner] delete branches/b1/menu = DENY
+[2026-09-03T10:33:50.000Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/branches/b1 failed: permission_denied 
+  PASS [owner] delete branch b1 (whole) = DENY
+[2026-09-03T10:33:50.018Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1/secondaryPasswordHash failed: permission_denied 
+  PASS [owner] delete staff protected field secondaryPasswordHash = DENY
+[2026-09-03T10:33:50.039Z]  @firebase/database: FIREBASE WARNING: set at /rooms/BBMANN/staff/st1 failed: permission_denied 
+  PASS [owner] delete staff st1 (whole) = DENY
+  ---- FORWARD-FIX (deny-all-writes): 71/71 PASS ----
+
+==================== SUMMARY ====================
+  RULES A (secure transitional): 71/71
+  RULES B (secure fallback): 71/71
+  FORWARD-FIX (deny-all-writes): 71/71
+  TOTAL: 213/213 PASS, 0 FAIL

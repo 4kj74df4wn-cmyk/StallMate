@@ -1,0 +1,232 @@
+StallMate P0 Phase 2A — Emulator test OUTPUT (Phase 2A Foundation PASS; HOLD-3/4/5 closed)
+Runner: firebase-database-emulator-v4.11.2.jar (openjdk version "11.0.32" 2026-07-21) + @firebase/rules-unit-testing 5.0.2 + firebase 10.14.1
+Date: 2026-09-03T10:33:50Z  ProcessExit: 0 (0 = all pass). Re-run after comment-only label cleanup; logic unchanged.
+============================================================
+
+==================== RULES A (secure transitional) ====================
+  PASS [anon] read rooms/BBMANN/salesRecords = DENY
+  PASS [anon] write salesRecords/x = DENY
+  PASS [anon] delete salesRecords/s1 = DENY
+  PASS [anon] delete whole room = DENY
+  PASS [anon] read licenses/CODE2 = DENY
+  PASS [anon] read trialRegistry/dev1 = DENY
+  PASS [attacker] read rooms/BBMANN/salesRecords = DENY
+  PASS [attacker] write salesRecords/x = DENY
+  PASS [attacker] delete salesRecords/s1 = DENY
+  PASS [attacker] delete salesRecords/s1/cashSatang = DENY
+  PASS [attacker] delete session field = DENY
+  PASS [attacker] delete checkin field = DENY
+  PASS [attacker] delete branch trial = DENY
+  PASS [attacker] delete staff field = DENY
+  PASS [attacker] write unknown room child = DENY
+  PASS [attacker] delete whole room = DENY
+  PASS [attacker] direct redeem licenses/CODE1 = DENY
+  PASS [attacker] enumerate licenses = DENY
+  PASS [attacker] write shopProfiles/OWNER = DENY
+  PASS [attacker] write global config child = DENY
+  PASS [attacker] read other-device trial = DENY
+  PASS [owner] read rooms/BBMANN = ALLOW
+  PASS [owner] read OTHER business = DENY
+  PASS [owner] read own license CODE2 = ALLOW
+  PASS [owner] read own trial dev1 = ALLOW
+  PASS [owner] read other trial dev2 = DENY
+  PASS [owner] update own trial preserve boundUid = ALLOW
+  PASS [attacker] overwrite owner device + change boundUid = DENY
+  PASS [attacker] modify owner device preserving owner boundUid = DENY
+  PASS [owner] change own trial boundUid to another uid = DENY
+  PASS [attacker] create new unclaimed device bound to self = ALLOW
+  PASS [anon] create trial device bound to self = DENY
+  PASS [anon] update owner trial device = DENY
+  PASS [anon] delete owner trial device = DENY
+  PASS [owner] whole-record delete own trial device = DENY
+  PASS [owner] nested delete trial boundUid = DENY
+  PASS [owner] create MODERN sale = ALLOW
+  PASS [owner] create LEGACY sale = ALLOW
+  PASS [owner] edit MODERN sale keep all fields = ALLOW
+  PASS [owner] edit LEGACY sale keep all fields = ALLOW
+  PASS [owner] update single leaf cashSatang value = ALLOW
+  PASS [owner] append deletedSales/x = ALLOW
+  PASS [owner] update session keep fields = ALLOW
+  PASS [owner] write new checkin = ALLOW
+  PASS [owner] write own shopProfile = ALLOW
+  PASS [owner] HARD-DELETE sale s1 = DENY
+  PASS [owner] delete salesRecords/s1/cashSatang = DENY
+  PASS [owner] set salesRecords/s1/cashSatang=null = DENY
+  PASS [owner] set salesRecords/s1/total=null (required money) = DENY
+  PASS [owner] replace sale s1 with incomplete object = DENY
+  PASS [owner] delete legacy money field cashAmount = DENY
+  PASS [owner] mutate existing deletedSales/d1 = DENY
+  PASS [owner] delete nested session field roundId = DENY
+  PASS [owner] delete nested checkin field at = DENY
+  PASS [owner] delete session se1 (whole) = DENY
+  PASS [owner] delete checkin c1 (whole) = DENY
+  PASS [owner] delete config child = DENY
+  PASS [owner] delete whole room = DENY
+  PASS [owner] write unknown room child = DENY
+  PASS [owner] client write license CODE2 = DENY
+  PASS [owner] multi-loc update w/ nested null (sale field) = DENY
+  PASS [owner] multi-loc update w/ nested null (session field) = DENY
+  PASS [owner] update branch menu (replace) = ALLOW
+  PASS [owner] soft-deactivate branch meta/active=false = ALLOW
+  PASS [owner] update config child maxBranches = ALLOW
+  PASS [owner] soft-deactivate staff active=false = ALLOW
+  PASS [owner] delete branches/b1/trial = DENY
+  PASS [owner] delete branches/b1/menu = DENY
+  PASS [owner] delete branch b1 (whole) = DENY
+  PASS [owner] delete staff protected field secondaryPasswordHash = DENY
+  PASS [owner] delete staff st1 (whole) = DENY
+  ---- RULES A (secure transitional): 71/71 PASS ----
+
+==================== RULES B (secure fallback) ====================
+  PASS [anon] read rooms/BBMANN/salesRecords = DENY
+  PASS [anon] write salesRecords/x = DENY
+  PASS [anon] delete salesRecords/s1 = DENY
+  PASS [anon] delete whole room = DENY
+  PASS [anon] read licenses/CODE2 = DENY
+  PASS [anon] read trialRegistry/dev1 = DENY
+  PASS [attacker] read rooms/BBMANN/salesRecords = DENY
+  PASS [attacker] write salesRecords/x = DENY
+  PASS [attacker] delete salesRecords/s1 = DENY
+  PASS [attacker] delete salesRecords/s1/cashSatang = DENY
+  PASS [attacker] delete session field = DENY
+  PASS [attacker] delete checkin field = DENY
+  PASS [attacker] delete branch trial = DENY
+  PASS [attacker] delete staff field = DENY
+  PASS [attacker] write unknown room child = DENY
+  PASS [attacker] delete whole room = DENY
+  PASS [attacker] direct redeem licenses/CODE1 = DENY
+  PASS [attacker] enumerate licenses = DENY
+  PASS [attacker] write shopProfiles/OWNER = DENY
+  PASS [attacker] write global config child = DENY
+  PASS [attacker] read other-device trial = DENY
+  PASS [owner] read rooms/BBMANN = ALLOW
+  PASS [owner] read OTHER business = DENY
+  PASS [owner] read own license CODE2 = ALLOW
+  PASS [owner] read own trial dev1 = ALLOW
+  PASS [owner] read other trial dev2 = DENY
+  PASS [owner] update own trial preserve boundUid = ALLOW
+  PASS [attacker] overwrite owner device + change boundUid = DENY
+  PASS [attacker] modify owner device preserving owner boundUid = DENY
+  PASS [owner] change own trial boundUid to another uid = DENY
+  PASS [attacker] create new unclaimed device bound to self = ALLOW
+  PASS [anon] create trial device bound to self = DENY
+  PASS [anon] update owner trial device = DENY
+  PASS [anon] delete owner trial device = DENY
+  PASS [owner] whole-record delete own trial device = DENY
+  PASS [owner] nested delete trial boundUid = DENY
+  PASS [owner] create MODERN sale = ALLOW
+  PASS [owner] create LEGACY sale = ALLOW
+  PASS [owner] edit MODERN sale keep all fields = ALLOW
+  PASS [owner] edit LEGACY sale keep all fields = ALLOW
+  PASS [owner] update single leaf cashSatang value = ALLOW
+  PASS [owner] append deletedSales/x = ALLOW
+  PASS [owner] update session keep fields = ALLOW
+  PASS [owner] write new checkin = ALLOW
+  PASS [owner] write own shopProfile = ALLOW
+  PASS [owner] HARD-DELETE sale s1 = DENY
+  PASS [owner] delete salesRecords/s1/cashSatang = DENY
+  PASS [owner] set salesRecords/s1/cashSatang=null = DENY
+  PASS [owner] set salesRecords/s1/total=null (required money) = DENY
+  PASS [owner] replace sale s1 with incomplete object = DENY
+  PASS [owner] delete legacy money field cashAmount = DENY
+  PASS [owner] mutate existing deletedSales/d1 = DENY
+  PASS [owner] delete nested session field roundId = DENY
+  PASS [owner] delete nested checkin field at = DENY
+  PASS [owner] delete session se1 (whole) = DENY
+  PASS [owner] delete checkin c1 (whole) = DENY
+  PASS [owner] delete config child = DENY
+  PASS [owner] delete whole room = DENY
+  PASS [owner] write unknown room child = DENY
+  PASS [owner] client write license CODE2 = DENY
+  PASS [owner] multi-loc update w/ nested null (sale field) = DENY
+  PASS [owner] multi-loc update w/ nested null (session field) = DENY
+  PASS [owner] update branch menu (replace) = DENY
+  PASS [owner] soft-deactivate branch meta/active=false = DENY
+  PASS [owner] update config child maxBranches = DENY
+  PASS [owner] soft-deactivate staff active=false = DENY
+  PASS [owner] delete branches/b1/trial = DENY
+  PASS [owner] delete branches/b1/menu = DENY
+  PASS [owner] delete branch b1 (whole) = DENY
+  PASS [owner] delete staff protected field secondaryPasswordHash = DENY
+  PASS [owner] delete staff st1 (whole) = DENY
+  ---- RULES B (secure fallback): 71/71 PASS ----
+
+==================== FORWARD-FIX (deny-all-writes) ====================
+  PASS [anon] read rooms/BBMANN/salesRecords = DENY
+  PASS [anon] write salesRecords/x = DENY
+  PASS [anon] delete salesRecords/s1 = DENY
+  PASS [anon] delete whole room = DENY
+  PASS [anon] read licenses/CODE2 = DENY
+  PASS [anon] read trialRegistry/dev1 = DENY
+  PASS [attacker] read rooms/BBMANN/salesRecords = DENY
+  PASS [attacker] write salesRecords/x = DENY
+  PASS [attacker] delete salesRecords/s1 = DENY
+  PASS [attacker] delete salesRecords/s1/cashSatang = DENY
+  PASS [attacker] delete session field = DENY
+  PASS [attacker] delete checkin field = DENY
+  PASS [attacker] delete branch trial = DENY
+  PASS [attacker] delete staff field = DENY
+  PASS [attacker] write unknown room child = DENY
+  PASS [attacker] delete whole room = DENY
+  PASS [attacker] direct redeem licenses/CODE1 = DENY
+  PASS [attacker] enumerate licenses = DENY
+  PASS [attacker] write shopProfiles/OWNER = DENY
+  PASS [attacker] write global config child = DENY
+  PASS [attacker] read other-device trial = DENY
+  PASS [owner] read rooms/BBMANN = ALLOW
+  PASS [owner] read OTHER business = DENY
+  PASS [owner] read own license CODE2 = ALLOW
+  PASS [owner] read own trial dev1 = ALLOW
+  PASS [owner] read other trial dev2 = DENY
+  PASS [owner] update own trial preserve boundUid = DENY
+  PASS [attacker] overwrite owner device + change boundUid = DENY
+  PASS [attacker] modify owner device preserving owner boundUid = DENY
+  PASS [owner] change own trial boundUid to another uid = DENY
+  PASS [attacker] create new unclaimed device bound to self = DENY
+  PASS [anon] create trial device bound to self = DENY
+  PASS [anon] update owner trial device = DENY
+  PASS [anon] delete owner trial device = DENY
+  PASS [owner] whole-record delete own trial device = DENY
+  PASS [owner] nested delete trial boundUid = DENY
+  PASS [owner] create MODERN sale = DENY
+  PASS [owner] create LEGACY sale = DENY
+  PASS [owner] edit MODERN sale keep all fields = DENY
+  PASS [owner] edit LEGACY sale keep all fields = DENY
+  PASS [owner] update single leaf cashSatang value = DENY
+  PASS [owner] append deletedSales/x = DENY
+  PASS [owner] update session keep fields = DENY
+  PASS [owner] write new checkin = DENY
+  PASS [owner] write own shopProfile = DENY
+  PASS [owner] HARD-DELETE sale s1 = DENY
+  PASS [owner] delete salesRecords/s1/cashSatang = DENY
+  PASS [owner] set salesRecords/s1/cashSatang=null = DENY
+  PASS [owner] set salesRecords/s1/total=null (required money) = DENY
+  PASS [owner] replace sale s1 with incomplete object = DENY
+  PASS [owner] delete legacy money field cashAmount = DENY
+  PASS [owner] mutate existing deletedSales/d1 = DENY
+  PASS [owner] delete nested session field roundId = DENY
+  PASS [owner] delete nested checkin field at = DENY
+  PASS [owner] delete session se1 (whole) = DENY
+  PASS [owner] delete checkin c1 (whole) = DENY
+  PASS [owner] delete config child = DENY
+  PASS [owner] delete whole room = DENY
+  PASS [owner] write unknown room child = DENY
+  PASS [owner] client write license CODE2 = DENY
+  PASS [owner] multi-loc update w/ nested null (sale field) = DENY
+  PASS [owner] multi-loc update w/ nested null (session field) = DENY
+  PASS [owner] update branch menu (replace) = DENY
+  PASS [owner] soft-deactivate branch meta/active=false = DENY
+  PASS [owner] update config child maxBranches = DENY
+  PASS [owner] soft-deactivate staff active=false = DENY
+  PASS [owner] delete branches/b1/trial = DENY
+  PASS [owner] delete branches/b1/menu = DENY
+  PASS [owner] delete branch b1 (whole) = DENY
+  PASS [owner] delete staff protected field secondaryPasswordHash = DENY
+  PASS [owner] delete staff st1 (whole) = DENY
+  ---- FORWARD-FIX (deny-all-writes): 71/71 PASS ----
+
+==================== SUMMARY ====================
+  RULES A (secure transitional): 71/71
+  RULES B (secure fallback): 71/71
+  FORWARD-FIX (deny-all-writes): 71/71
+  TOTAL: 213/213 PASS, 0 FAIL
