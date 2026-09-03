@@ -1,0 +1,22 @@
+name: verify
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches-ignore: [ main ]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # C2: full history + tags
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: require m2-baseline tag (fail-closed, C2)
+        run: bash tests/require_m2_baseline_tag.sh
+      - name: verify (syntax→snapshot→index→exact counts→protected-scope)
+        run: chmod +x verify.sh && ./verify.sh stallmate_v7.9.8.14.html
+      - name: negative guard self-test (all guards must fail-closed)
+        run: bash tests/negative_tests.sh
