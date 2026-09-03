@@ -1,27 +1,31 @@
-StallMate P0 R1 — Auth emulator suite OUTPUT
-Runner: firebase Auth emulator (firebase-tools) + firebase 10.14.1 (firebase/auth) — Node, no Java
-Date: 2026-09-03T15:37:24Z
+StallMate P0 R1 — Auth emulator suite OUTPUT (HOLD-1 CORRECTED)
+Runner: firebase Auth emulator + firebase 10.14.1 (firebase/auth) — Node, no Java
+Date: 2026-09-03T15:58:47Z
+Covers BLOCKER-1 (identity != owner authority; injected verifier; default-false pre-R2; revoke/sign-out clear)
+and BLOCKER-2 (durable idempotency: writeFn(snapshot,opId) deterministic key; queue-first; exactly-once; storage-fail surfaced).
 ============================================================
-  PASS anonymous sign-in = signed-in, isAnonymous, NOT permanent owner
-  PASS anonymous is not permanent owner identity
+  PASS anonymous = permanentIdentity false
   PASS anon/device/roomCode/PIN never confer owner authority
-  PASS owner sign-in = permanent owner identity
-  PASS isPermanentOwnerIdentity true for owner
-  PASS sign-out clears identity
-  PASS re-authentication restores permanent owner identity
-  PASS auth timeout rejects with AUTH_TIMEOUT (not silent)
-  PASS offline sale = queued, not written
-  PASS offline sale not durably written; 1 pending
-  PASS anon sale write blocked+queued (not dropped)
-  PASS anon sale not written; queued
-  PASS write failure = queued fail-closed
-  PASS failed sale retained in queue
-  PASS authed+online+durable success writes once, no queue
-  PASS two offline sales queued
-  PASS flush blocked while not owner (no silent write)
-  PASS flush after re-auth writes all queued, none dropped
-  PASS financial invariant preserved on flush (sa)
-  PASS financial invariant preserved on flush (sb, no mutation)
-  PASS duplicate opId enqueued once
-  PASS dedupe: flushed once
-=== R1 AUTH SUITE: 22/22 PASS, 0 FAIL ===
+  PASS owner sign-in = permanentIdentity true
+  PASS B1: anonymous identity => ownerAuthorized DENY
+  PASS B1: arbitrary permanent UNBOUND user => DENY
+  PASS B1: wrong permanent UID => DENY
+  PASS B1: bound permanent owner => ALLOW
+  PASS B1: bound owner initially ALLOW
+  PASS B1: binding revoked after success => DENY (no indefinite cache)
+  PASS B1: owner authorized before sign-out
+  PASS B1: sign-out clears owner authority
+  PASS B1: no verifier (pre-R2) => ownerAuthorized defaults false
+  PASS B1: unbound owner sale write DENIED+queued (not written)
+  PASS B2: commit-then-timeout => queued, db has 1 (same key)
+  PASS B2: replay uses same deterministic key (opId)
+  PASS B2: after replay exactly ONE sale, queue cleared
+  PASS B2: pre-restart committed once, still queued
+  PASS B2: restart + replay => still exactly one sale
+  PASS B2: mutated caller object cannot alter queued snapshot
+  PASS B2: storage failure surfaced, network write NOT attempted
+  PASS B2: success writes once at opId key, queue empty
+  PASS offline sale queued
+  PASS financial invariant preserved on flush
+  PASS auth timeout rejects AUTH_TIMEOUT (surfaced)
+=== R1 AUTH SUITE: 24/24 PASS, 0 FAIL ===

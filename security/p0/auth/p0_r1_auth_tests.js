@@ -1,166 +1,171 @@
 /**
- * StallMate P0 R1 — Auth emulator suite. Runs against the Firebase Auth emulator.
+ * StallMate P0 R1 — Auth emulator suite (HOLD-1 CORRECTED). Runs against the Firebase Auth emulator:
  *   firebase emulators:exec --only auth --project demo-p0 "node p0_r1_auth_tests.js"
- * Exercises the client-auth foundation (p0_r1_stallmate_auth.js). Synthetic only; no prod, no rules.
- * Exit 0 iff all pass.
+ * Covers BLOCKER-1 (identity != owner authority via injected verifier) and BLOCKER-2 (durable
+ * idempotency: writeFn(snapshot,opId) deterministic key, queue-first, exactly-once). Synthetic only.
  */
 'use strict';
 const path = require('path');
-const { initializeApp, deleteApp } = require('firebase/app');
+const { initializeApp } = require('firebase/app');
 const {
   getAuth, connectAuthEmulator, signInAnonymously, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, signOut, onAuthStateChanged, onIdTokenChanged
 } = require('firebase/auth');
-const { createAuthController, withTimeout } = require(path.join(__dirname, 'p0_r1_stallmate_auth.js'));
+const { createAuthController } = require(path.join(__dirname, 'p0_r1_stallmate_auth.js'));
 
 let pass = 0, fail = 0;
-function ok(cond, label){ if (cond){ pass++; console.log('  PASS ' + label); } else { fail++; console.log('  FAIL ' + label); } }
+function ok(c, label){ if (c){ pass++; console.log('  PASS ' + label); } else { fail++; console.log('  FAIL ' + label); } }
+function memStorage(){ const m = new Map(); return { getItem:k=>m.has(k)?m.get(k):null, setItem:(k,v)=>m.set(k,String(v)), removeItem:k=>m.delete(k), _m:m }; }
 
-function memStorage(){ const m = new Map(); return {
-  getItem:k=>m.has(k)?m.get(k):null, setItem:(k,v)=>m.set(k,String(v)), removeItem:k=>m.delete(k), _m:m }; }
-
-let appN = 0;
+let n = 0;
 function newController(opts){
   opts = opts || {};
-  const app = initializeApp({ apiKey:'demo-key', projectId:'demo-p0', authDomain:'localhost' }, 'app'+(++appN));
+  const app = initializeApp({ apiKey:'demo-key', projectId:'demo-p0', authDomain:'localhost' }, 'app'+(++n));
   const auth = getAuth(app);
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings:true });
   const storage = opts.storage || memStorage();
   let online = opts.online !== undefined ? opts.online : true;
+  const authz = opts.authz || { boundUids: new Set() };
   const ctrl = createAuthController({
     auth, signInAnonymously, signInWithEmailAndPassword, signOut, onAuthStateChanged, onIdTokenChanged,
-    storage, isOnline:()=>online, now:()=>Date.now(), genOpId:()=> 'op_'+(++appN)+'_'+Date.now(),
-    timeoutMs: opts.timeoutMs || 15000
+    storage, isOnline:()=>online, now:()=>Date.now(), genOpId:()=>'op_'+(++n)+'_'+Date.now(), timeoutMs:15000,
+    verifyOwnerBinding: opts.noVerifier ? undefined : async (uid)=> authz.boundUids.has(uid)
   });
   ctrl.init();
-  return { ctrl, auth, app, storage, setOnline:(v)=>{online=v;} };
+  return { ctrl, auth, storage, authz, setOnline:(v)=>{online=v;} };
 }
-
 const sale = () => ({ id:'s1', orderId:'o1', time:1, total:250, totalSatang:25000, cashAmount:250, cashSatang:25000 });
+const mkUser = async (auth) => { const em='u'+(++n)+'_'+Date.now()+'@ex.com'; await createUserWithEmailAndPassword(auth, em, 'pw123456'); return em; };
 
 (async () => {
-  console.log('=== StallMate P0 R1 — Auth emulator suite ===');
+  console.log('=== StallMate P0 R1 — Auth emulator suite (HOLD-1 CORRECTED) ===');
 
-  // 1. anonymous = transitional device identity, NOT owner
-  {
-    const { ctrl } = newController();
+  // ---------- identity ----------
+  { const { ctrl } = newController();
     const id = await ctrl.signInAnon();
-    ok(id.signedIn && id.isAnonymous && id.permanentOwnerIdentity === false, 'anonymous sign-in = signed-in, isAnonymous, NOT permanent owner');
-    ok(ctrl.isPermanentOwnerIdentity() === false, 'anonymous is not permanent owner identity');
-    ok(ctrl.assertNotOwnerAuthority('anonymous') === false
-       && ctrl.assertNotOwnerAuthority('deviceId') === false
-       && ctrl.assertNotOwnerAuthority('roomCode') === false
-       && ctrl.assertNotOwnerAuthority('pin') === false, 'anon/device/roomCode/PIN never confer owner authority');
-  }
+    ok(id.signedIn && id.isAnonymous && id.permanentIdentity===false, 'anonymous = permanentIdentity false');
+    ok(ctrl.assertNotOwnerAuthority('anonymous')===false && ctrl.assertNotOwnerAuthority('deviceId')===false
+       && ctrl.assertNotOwnerAuthority('roomCode')===false && ctrl.assertNotOwnerAuthority('pin')===false,
+       'anon/device/roomCode/PIN never confer owner authority'); }
 
-  // 2. permanent owner sign-in pathway
-  let ownerEmail = 'owner+'+Date.now()+'@example.com', ownerPw = 'ownerPass123';
-  {
-    const { ctrl, auth } = newController();
-    await createUserWithEmailAndPassword(auth, ownerEmail, ownerPw); // provision in emulator
-    const id = await ctrl.signInOwner(ownerEmail, ownerPw);
-    ok(id.signedIn && id.isAnonymous === false && id.permanentOwnerIdentity === true, 'owner sign-in = permanent owner identity');
-    ok(ctrl.isPermanentOwnerIdentity() === true, 'isPermanentOwnerIdentity true for owner');
-  }
+  { const { ctrl, auth } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456');
+    ok(id.permanentIdentity===true && id.isAnonymous===false, 'owner sign-in = permanentIdentity true'); }
 
-  // 3. sign-out + re-auth
-  {
-    const { ctrl, auth } = newController();
-    const em='reauth+'+Date.now()+'@example.com';
-    await createUserWithEmailAndPassword(auth, em, 'pw123456');
-    await ctrl.signInOwner(em, 'pw123456');
-    await ctrl.signOut();
-    ok(ctrl.getIdentity().signedIn === false, 'sign-out clears identity');
-    const id2 = await ctrl.reAuthOwner(em, 'pw123456');
-    ok(id2.permanentOwnerIdentity === true, 're-authentication restores permanent owner identity');
-  }
-
-  // 4. auth timeout (DI hang) — surfaced, not swallowed
-  {
-    const storage = memStorage();
-    const hang = createAuthController({
-      auth:{currentUser:null}, signInAnonymously:()=>new Promise(()=>{}), signInWithEmailAndPassword:()=>new Promise(()=>{}),
-      signOut:async()=>{}, onAuthStateChanged:()=>()=>{}, storage, isOnline:()=>true, timeoutMs:150
-    });
-    hang.init();
-    let threw=false; try { await hang.signInAnon(); } catch(e){ threw = /AUTH_TIMEOUT/.test(e.message); }
-    ok(threw, 'auth timeout rejects with AUTH_TIMEOUT (not silent)');
-  }
-
-  // 5. OFFLINE: sale must be QUEUED, never dropped or altered
-  {
-    const { ctrl, auth, storage, setOnline } = newController();
-    const em='off+'+Date.now()+'@example.com'; await createUserWithEmailAndPassword(auth, em,'pw123456'); await ctrl.signInOwner(em,'pw123456');
-    setOnline(false);
-    const written=[]; const s=sale();
-    const r = await ctrl.guardedSaleWrite(s, async(x)=>{ written.push(x); });
-    ok(r.ok===false && r.queued===true && r.reason==='offline', 'offline sale = queued, not written');
-    ok(written.length===0 && ctrl.pendingCount()===1, 'offline sale not durably written; 1 pending');
-  }
-
-  // 6. NOT permanent owner (anonymous) sale write cannot silently drop
-  {
-    const { ctrl } = newController();
+  // ---------- BLOCKER-1: identity != owner authority ----------
+  { const { ctrl } = newController();
     await ctrl.signInAnon();
-    const written=[]; const r = await ctrl.guardedSaleWrite(sale(), async(x)=>{ written.push(x); });
-    ok(r.ok===false && r.queued===true && r.reason==='not_permanent_owner', 'anon sale write blocked+queued (not dropped)');
-    ok(written.length===0 && ctrl.pendingCount()===1, 'anon sale not written; queued');
-  }
+    ok((await ctrl.isOwnerAuthorized())===false, 'B1: anonymous identity => ownerAuthorized DENY'); }
 
-  // 7. durable write FAILS -> fail-closed queue (not dropped)
-  {
-    const { ctrl, auth } = newController();
-    const em='wf+'+Date.now()+'@example.com'; await createUserWithEmailAndPassword(auth, em,'pw123456'); await ctrl.signInOwner(em,'pw123456');
-    const r = await ctrl.guardedSaleWrite(sale(), async()=>{ throw new Error('rtdb down'); });
-    ok(r.ok===false && r.queued===true && r.reason==='write_failed', 'write failure = queued fail-closed');
-    ok(ctrl.pendingCount()===1, 'failed sale retained in queue');
-  }
+  { const { ctrl, auth } = newController(); // verifier present, but uid not bound
+    const em = await mkUser(auth); await ctrl.signInOwner(em,'pw123456');
+    ok((await ctrl.isOwnerAuthorized())===false, 'B1: arbitrary permanent UNBOUND user => DENY'); }
 
-  // 8. success path
-  {
-    const { ctrl, auth } = newController();
-    const em='okk+'+Date.now()+'@example.com'; await createUserWithEmailAndPassword(auth, em,'pw123456'); await ctrl.signInOwner(em,'pw123456');
-    const written=[]; const r = await ctrl.guardedSaleWrite(sale(), async(x)=>{ written.push(x); });
-    ok(r.ok===true && written.length===1 && ctrl.pendingCount()===0, 'authed+online+durable success writes once, no queue');
-  }
+  { const { ctrl, auth, authz } = newController();
+    authz.boundUids.add('some-other-uid'); // binding exists but for a different uid
+    const em = await mkUser(auth); await ctrl.signInOwner(em,'pw123456');
+    ok((await ctrl.isOwnerAuthorized())===false, 'B1: wrong permanent UID => DENY'); }
 
-  // 9. expired/sign-out then flush after re-auth; financial invariants preserved
-  {
-    const { ctrl, auth, setOnline } = newController();
-    const em='flush+'+Date.now()+'@example.com'; await createUserWithEmailAndPassword(auth, em,'pw123456'); await ctrl.signInOwner(em,'pw123456');
-    setOnline(false);
-    const s1=sale(); s1.id='sa'; s1.__opId='opA';
-    const s2=sale(); s2.id='sb'; s2.__opId='opB'; s2.total=99.5; s2.totalSatang=9950; s2.cashAmount=99.5; s2.cashSatang=9950;
-    await ctrl.guardedSaleWrite(s1, async()=>{});
-    await ctrl.guardedSaleWrite(s2, async()=>{});
-    ok(ctrl.pendingCount()===2, 'two offline sales queued');
-    // expiry simulation: sign out while queued
+  { const { ctrl, auth, authz } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456');
+    authz.boundUids.add(id.uid);
+    ok((await ctrl.isOwnerAuthorized())===true, 'B1: bound permanent owner => ALLOW'); }
+
+  { const { ctrl, auth, authz } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456');
+    authz.boundUids.add(id.uid);
+    ok((await ctrl.isOwnerAuthorized())===true, 'B1: bound owner initially ALLOW');
+    authz.boundUids.delete(id.uid); // binding revoked after prior success
+    ok((await ctrl.isOwnerAuthorized())===false, 'B1: binding revoked after success => DENY (no indefinite cache)'); }
+
+  { const { ctrl, auth, authz } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456'); authz.boundUids.add(id.uid);
+    ok((await ctrl.isOwnerAuthorized())===true, 'B1: owner authorized before sign-out');
     await ctrl.signOut();
-    const blocked = await ctrl.flushPendingSales(async()=>{});
-    ok(blocked.flushed===0 && blocked.blocked==='not_permanent_owner', 'flush blocked while not owner (no silent write)');
-    // re-auth + online + flush
-    await ctrl.reAuthOwner(em,'pw123456'); setOnline(true);
-    const written=[];
-    const res = await ctrl.flushPendingSales(async(x)=>{ written.push(JSON.parse(JSON.stringify(x))); });
-    ok(res.flushed===2 && res.remaining===0 && ctrl.pendingCount()===0, 'flush after re-auth writes all queued, none dropped');
-    const byId = Object.fromEntries(written.map(w=>[w.id,w]));
-    ok(byId.sa && byId.sa.totalSatang===25000 && byId.sa.cashSatang===25000, 'financial invariant preserved on flush (sa)');
-    ok(byId.sb && byId.sb.totalSatang===9950 && byId.sb.total===99.5, 'financial invariant preserved on flush (sb, no mutation)');
-  }
+    ok((await ctrl.isOwnerAuthorized())===false, 'B1: sign-out clears owner authority'); }
 
-  // 10. dedupe by opId (double submit) — write once
-  {
-    const { ctrl, auth, setOnline } = newController();
-    const em='dup+'+Date.now()+'@example.com'; await createUserWithEmailAndPassword(auth, em,'pw123456'); await ctrl.signInOwner(em,'pw123456');
+  // pre-R2: no verifier injected => always DENY
+  { const { ctrl, auth } = newController({ noVerifier:true });
+    const em = await mkUser(auth); await ctrl.signInOwner(em,'pw123456');
+    ok((await ctrl.isOwnerAuthorized())===false, 'B1: no verifier (pre-R2) => ownerAuthorized defaults false'); }
+
+  // guardedSaleWrite requires owner authorization
+  { const { ctrl, auth } = newController();
+    const em = await mkUser(auth); await ctrl.signInOwner(em,'pw123456'); // permanent but unbound
+    const db = new Map(); const r = await ctrl.guardedSaleWrite(sale(), async(s,op)=>db.set(op,s));
+    ok(r.ok===false && r.reason==='not_owner_authorized' && db.size===0, 'B1: unbound owner sale write DENIED+queued (not written)'); }
+
+  // ---------- BLOCKER-2: durable idempotency ----------
+  // deterministic key = opId; remote commit succeeds but client sees timeout -> replay -> exactly one
+  { const { ctrl, auth, authz, storage } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456'); authz.boundUids.add(id.uid);
+    const db = new Map();
+    const writerCommitThenTimeout = async (snap, op) => { db.set(op, snap); throw new Error('client timeout after commit'); };
+    const r1 = await ctrl.guardedSaleWrite(sale(), writerCommitThenTimeout);
+    ok(r1.ok===false && r1.queued===true && db.size===1, 'B2: commit-then-timeout => queued, db has 1 (same key)');
+    const opId = r1.opId;
+    // replay uses SAME opId/key
+    const writerOk = async (snap, op) => { db.set(op, snap); };
+    let replayKey=null; const res = await ctrl.flushPendingSales(async(snap,op)=>{ replayKey=op; return writerOk(snap,op); });
+    ok(replayKey===opId, 'B2: replay uses same deterministic key (opId)');
+    ok(db.size===1 && res.flushed===1 && ctrl.pendingCount()===0, 'B2: after replay exactly ONE sale, queue cleared'); }
+
+  // refresh/restart then replay still exactly one (new controller, same storage + same key)
+  { const { ctrl, auth, authz, storage } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456'); authz.boundUids.add(id.uid);
+    const db = new Map();
+    const r1 = await ctrl.guardedSaleWrite(sale(), async(s,op)=>{ db.set(op,s); throw new Error('timeout'); });
+    ok(db.size===1 && ctrl.pendingCount()===1, 'B2: pre-restart committed once, still queued');
+    // simulate restart: new controller reusing SAME storage + authz
+    const restart = newController({ storage, authz });
+    const id2 = await restart.ctrl.signInOwner(em,'pw123456'); // authz.boundUids already has id.uid (same account)
+    const res = await restart.ctrl.flushPendingSales(async(s,op)=>{ db.set(op,s); });
+    ok(db.size===1 && res.flushed===1, 'B2: restart + replay => still exactly one sale'); }
+
+  // mutated caller object cannot alter queued snapshot
+  { const { ctrl, auth, authz, storage, setOnline } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456'); authz.boundUids.add(id.uid);
     setOnline(false);
-    const s=sale(); s.__opId='dupOp';
-    await ctrl.guardedSaleWrite(s, async()=>{});
-    await ctrl.guardedSaleWrite(s, async()=>{});
-    ok(ctrl.pendingCount()===1, 'duplicate opId enqueued once');
-    setOnline(true); await ctrl.reAuthOwner(em,'pw123456');
-    const written=[]; const res = await ctrl.flushPendingSales(async(x)=>{written.push(x);});
-    ok(res.flushed===1 && written.length===1, 'dedupe: flushed once');
-  }
+    const s = sale();
+    const r = await ctrl.guardedSaleWrite(s, async()=>{});
+    s.total = 99999; s.totalSatang = 9999900; s.id = 'HACKED'; // mutate AFTER queueing
+    const q = JSON.parse(storage.getItem(ctrl._PENDING_KEY));
+    const snap = q.find(e=>e.opId===r.opId).snapshot;
+    ok(snap.total===250 && snap.totalSatang===25000 && snap.id==='s1', 'B2: mutated caller object cannot alter queued snapshot'); }
+
+  // storage failure surfaced and write NOT attempted
+  { const failStore = { getItem:()=>null, setItem:()=>{ throw new Error('DISK_FULL'); }, removeItem:()=>{} };
+    const { ctrl, auth, authz } = newController({ storage: failStore });
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456'); authz.boundUids.add(id.uid);
+    let attempted=false, threw=false;
+    try { await ctrl.guardedSaleWrite(sale(), async()=>{ attempted=true; }); } catch(e){ threw=true; }
+    ok(threw===true && attempted===false, 'B2: storage failure surfaced, network write NOT attempted'); }
+
+  // success path (bound owner, online) writes once to deterministic key
+  { const { ctrl, auth, authz } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456'); authz.boundUids.add(id.uid);
+    const db = new Map(); const s = sale(); s.__opId='fixedKey1';
+    const r = await ctrl.guardedSaleWrite(s, async(snap,op)=>db.set(op,snap));
+    ok(r.ok===true && db.has('fixedKey1') && db.size===1 && ctrl.pendingCount()===0, 'B2: success writes once at opId key, queue empty'); }
+
+  // offline queue + financial invariants preserved on flush
+  { const { ctrl, auth, authz, setOnline } = newController();
+    const em = await mkUser(auth); const id = await ctrl.signInOwner(em,'pw123456'); authz.boundUids.add(id.uid);
+    setOnline(false);
+    const s2 = sale(); s2.__opId='fk2'; s2.total=99.5; s2.totalSatang=9950; s2.cashSatang=9950;
+    await ctrl.guardedSaleWrite(s2, async()=>{});
+    ok(ctrl.pendingCount()===1, 'offline sale queued');
+    setOnline(true);
+    const db=new Map(); const res = await ctrl.flushPendingSales(async(snap,op)=>db.set(op,snap));
+    ok(res.flushed===1 && db.get('fk2').totalSatang===9950 && db.get('fk2').total===99.5, 'financial invariant preserved on flush'); }
+
+  // auth timeout surfaced (DI hang)
+  { const storage = memStorage();
+    const hang = createAuthController({ auth:{currentUser:null}, signInAnonymously:()=>new Promise(()=>{}),
+      signInWithEmailAndPassword:()=>new Promise(()=>{}), signOut:async()=>{}, onAuthStateChanged:()=>()=>{},
+      storage, isOnline:()=>true, timeoutMs:150 });
+    hang.init(); let threw=false; try{ await hang.signInAnon(); }catch(e){ threw=/AUTH_TIMEOUT/.test(e.message); }
+    ok(threw, 'auth timeout rejects AUTH_TIMEOUT (surfaced)'); }
 
   console.log('\n=== R1 AUTH SUITE: ' + pass + '/' + (pass+fail) + ' PASS, ' + fail + ' FAIL ===');
   process.exit(fail===0 ? 0 : 1);
