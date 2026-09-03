@@ -15,5 +15,5 @@ C5 syntax → C3 snapshot+index → C1 harness EXACT 209/209 + 95/95 + exit 0 �
 ## Workflow (Room 00-approved)
 DEV HQ = single implement + independent-review owner. Room 00 = independent final gate. One active work order / one candidate / one delivery channel. M3 on branch m3/a1-credit-ledger. No deploy/merge to main without Room 00 authorization. No real shop data.
 
-## Current: M3 — A1 Credit Ledger
+## Current: SECURITY P0 PHASE 1 — CONTAINMENT DESIGN. M3 A1 remains blocked until Room 00 authorization.
 credit sale↔collection separate events; partial collection; sale-date↔collection-date separate; dup collection prevented; pending-op recovery tested; cancel=reversal/void (never hard delete); original revenue unchanged; regressions M2 209/209 + M0+M1 95/95 still pass.
