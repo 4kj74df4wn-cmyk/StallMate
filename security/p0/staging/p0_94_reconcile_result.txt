@@ -1,0 +1,14 @@
+StallMate P0 §9.4 — RECONCILIATION (SANITIZED public evidence)
+Public-safe: booleans + export metadata only. Actual counts, satang amounts,
+room-level metrics, staff/branch counts, and path inventory are intentionally
+OMITTED from this public artifact (retained privately in the governance library).
+
+Export SHA-256 : 0f3a94b7dc71e0a5fa5fbd7c501a3759a44762db77aa4516b3e19b5ecb784649
+Export bytes   : 1104991
+Export ts (UTC): 2026-09-03T14:15:50Z
+
+RECONCILE: EXACT MATCH — PASS
+  whole-tree hashes equal (source == emulator-restored): true
+  record counts equal                                  : true
+  satang totals equal                                  : true
+  process exit                                         : 0
