@@ -1,0 +1,10 @@
+StallMate P0 R1 — SHA-256 MANIFEST
+Generated: 2026-09-03T15:38:08Z
+========================================================
+227f67b6185a0b7eababa6fa237eb2ee8fce422f9b80c55606554ffffe93bb69  p0_r1_stallmate_auth.js
+a92f1c5fd3bbe1eac885ef61720ab3882523425bdda2b99f6d961d3817664851  p0_r1_auth_tests.js
+7cc96106b4e7389e73754b91bd3172017fa84a6ccacee2f522ddba990e9666bb  p0_r1_auth_results.txt
+062cb5d3791b30df9dfa6428b47cc4e6541b4137146ff5fc4fe8cf8077a77b4e  p0_r1_evidence.md
+--- frozen baselines (unchanged) ---
+523df939fae65166c30fce6394f12a7b780927cdcee4a3e02836a3388a9cb58e  stallmate_v7.9.8.13.html
+d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11  stallmate_v7.9.8.14.html
