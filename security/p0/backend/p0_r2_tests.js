@@ -11,7 +11,11 @@ const admin = require('firebase-admin');
 const {
   signClaim, verifyClaim, createOwnerBindingHandler, createOwnerVerifier, createRtdbSaleWriter, isValidKey
 } = require(path.join(__dirname, 'p0_r2_owner_binding.js'));
-const { createAuthController } = require(path.join(__dirname, 'p0_r1_stallmate_auth.js'));
+// auth module lives at security/p0/auth/stallmate_auth.js; this test lives at security/p0/backend/.
+// Try the Git layout path first, fall back to a co-located copy (HQ flat sandbox).
+let createAuthController;
+try { ({ createAuthController } = require(path.join(__dirname, '../auth/stallmate_auth.js'))); }
+catch(e){ ({ createAuthController } = require(path.join(__dirname, 'stallmate_auth.js'))); }
 
 let pass = 0, fail = 0;
 const PROG = process.env.R2_PROG || '';

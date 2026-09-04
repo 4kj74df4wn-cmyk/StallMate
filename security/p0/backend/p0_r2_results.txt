@@ -1,6 +1,7 @@
-StallMate P0 R2 (LOCAL) HOLD-1 CORRECTED — OUTPUT
-Runner: firebase-database-emulator jar v4.11.2 + firebase-admin 12 (Admin SDK). Auth identity injected as context.auth. Synthetic only.
-Date: 2026-09-04T06:37:04Z
+StallMate P0 R2 (LOCAL) — GIT-REPRODUCIBILITY CORRECTED — OUTPUT
+Run from a CLEAN git-layout mirror: security/p0/backend/p0_r2_tests.js importing ../auth/stallmate_auth.js
+(no duplicate auth file under backend). firebase-admin + RTDB emulator jar. Synthetic only.
+Date: 2026-09-04T07:13:38Z
 ============================================================
   PASS anonymous => DENY
   PASS unauthenticated => DENY
