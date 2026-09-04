@@ -23,6 +23,12 @@
 'use strict';
 
 const PENDING_KEY = 'sm_pending_sale_writes';
+// Collision-resistant default opId (crypto.randomUUID when available; falls back only if absent).
+function _defaultOpId(){
+  try { if (typeof crypto !== 'undefined' && crypto.randomUUID) return 'op_' + crypto.randomUUID(); } catch(e){}
+  try { const c = require('crypto'); if (c.randomUUID) return 'op_' + c.randomUUID(); } catch(e){}
+  return 'op_' + Math.random().toString(36).slice(2) + Date.now();
+}
 
 function withTimeout(promise, ms, label){
   return new Promise((resolve, reject) => {
@@ -36,7 +42,7 @@ function createAuthController(deps){
   const d = deps || {};
   const timeoutMs = d.timeoutMs || 15000;
   const storage = d.storage;
-  const genOpId = d.genOpId || (() => 'op_' + Math.random().toString(36).slice(2) + Date.now());
+  const genOpId = d.genOpId || _defaultOpId;
   let current = null;
   let stateListeners = [];
   let authzHint = null; // transient only; never a durable/indefinite cache
@@ -136,7 +142,7 @@ function createAuthController(deps){
   /** Replay queued sales. Same opId/key; remove only on ack; dedupe by opId; never new key. */
   async function flushPendingSales(writeFn){
     if (!(await isOwnerAuthorized())) return { flushed:0, remaining:(_readQueue()||[]).length, blocked:'not_owner_authorized' };
-    const q = _readQueue(); if (q === null) return { flushed:0, remaining:-1, blocked:'queue_unreadable' };
+    const q = _readQueue(); if (q === null) return { flushed:0, remaining:-1, blocked:'queue_unreadable', recoveryRequired:true };
     let flushed = 0; const seen = new Set();
     for (const entry of q){
       if (seen.has(entry.opId)) continue; seen.add(entry.opId);
@@ -147,12 +153,14 @@ function createAuthController(deps){
   }
 
   function pendingCount(){ const q = _readQueue(); return q === null ? -1 : q.length; }
+  // Surface pending-queue read/cleanup failure as recovery-required (never silently proceed).
+  function pendingHealth(){ const q = _readQueue(); return q === null ? { ok:false, recoveryRequired:true } : { ok:true, pending:q.length }; }
 
   return {
     init, onState, getIdentity, isPermanentIdentity,
     signInAnon, signInOwner, signOut: signOutUser, reAuthOwner,
     assertNotOwnerAuthority, isOwnerAuthorized,
-    guardedSaleWrite, flushPendingSales, pendingCount,
+    guardedSaleWrite, flushPendingSales, pendingCount, pendingHealth,
     _PENDING_KEY: PENDING_KEY
   };
 }

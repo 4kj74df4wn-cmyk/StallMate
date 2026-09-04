@@ -1,0 +1,12 @@
+StallMate P0 R2 (LOCAL) + §9.3 — SHA-256 MANIFEST
+Generated: 2026-09-04T04:28:08Z
+========================================================
+a7fb0f4c4e9df458b1cdb53efa01d78ca289325943a2fcfecbe91ec5eeedb296  p0_r2_owner_binding.js
+6014c6a21e054676e5e7eff52e8d1e9537fb9c84a0ede28eaa5f687f1727cb76  p0_r2_tests.js
+e5942b9a9d0de6e2e154ce8714c9cb6af16eac510f80360f17094557df6918c0  p0_r2_results.txt
+83de6f62dea7b3c6e2690d6755d3f4c4509f6af44af7880de65a3e217710273a  p0_93_billing_preflight.md
+5398e6a979809250cf524744adbb203ef28c18319aaad41f7726a94d391b982f  p0_r2_evidence.md
+4f2e0d7836141124812cb83df9669e20da86e98e10dd9e4852c2313fde3e1f14  p0_r1_stallmate_auth.js
+--- frozen baselines (unchanged) ---
+523df939fae65166c30fce6394f12a7b780927cdcee4a3e02836a3388a9cb58e  stallmate_v7.9.8.13.html
+d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11  stallmate_v7.9.8.14.html

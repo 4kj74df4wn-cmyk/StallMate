@@ -1,0 +1,26 @@
+StallMate P0 R2 (LOCAL) — owner-binding + deterministic writer — OUTPUT
+Runner: firebase-database-emulator jar v4.11.2 (Java 21 on prod machine / 11 in HQ sandbox) + firebase-admin 12 (Admin SDK)
+Date: 2026-09-04T04:26:21Z
+Auth identity injected as Functions runtime provides context.auth (Auth-verified). Synthetic only, no prod.
+============================================================
+  PASS anonymous identity => bind DENIED
+  PASS unauthenticated => bind DENIED
+  PASS valid owner+claim => bound
+  PASS roomOwners/BBMANN = ownerA
+  PASS audit event recorded
+  PASS audit has NO token/secret/pin/nonce (claimId=hash only)
+  PASS tampered claim => DENIED
+  PASS expired claim => DENIED
+  PASS claim for another room => DENIED
+  PASS replayed claim (same nonce) => DENIED
+  PASS second bind on owned room => already_bound (no reassignment)
+  PASS owner unchanged after takeover attempt (no silent takeover)
+  PASS verifier: bound uid => true
+  PASS verifier: wrong uid => false
+  PASS writer commit-then-timeout surfaced to client
+  PASS replay same opId => EXACTLY ONE sale
+  PASS restart + replay => still exactly one
+  PASS e2e: bound owner authorized
+  PASS e2e: guarded sale write ok
+  PASS e2e: exactly one sale persisted at opId key
+=== R2 SUITE: 20/20 PASS, 0 FAIL ===
