@@ -1,11 +1,16 @@
-StallMate P0 — STAGING RELEASE-PACKAGE — SHA-256 MANIFEST (NOT DEPLOYED)
-Generated: 2026-09-04T17:27:20Z
+StallMate P0 — STAGING RELEASE-PACKAGE HOLD-1 CORRECTED — SHA-256 MANIFEST (NOT DEPLOYED)
+Generated: 2026-09-04T17:41:48Z
 ========================================================
-functions/index.js  68290fab70e97ceb6e327f340891dd6d6981080dd0e01eefc9e135fa6a7bdc24
+functions/index.js  ab88abb9705f359a5ee4b8623530d4da387722c4649783ccb0905a7cc6e0833d
 functions/package.json  787a5c7eaa069e53af6dc3ca3128116c19f33a1d5371e2b35afc9109f84b207c
-staging/firebase.staging.json  a6230688bbf63dfdb4f75bc7d4ca33a195309320d1ca41681c4845dd2d11ccab
-p0_staging_release_runbook.md  e4569ff714759d2bef964cf6e4d8cdbed87e6047990c1a3b978a6c2afaca33b5
-p0_staging_release_evidence.md  ed2a25ab50c297bfc465e429df3baa4cea1b1d078e4069012e80ef38c04d926f
+staging/firebase.staging.json  aed363fb532c9ac6caa13ddc755a4a507de62cac1007921d3397848b71f3511b
+staging/database.rules.B.json  78fcd0882c73085bf1f32d5ccf7a73869c54f95c2c9731010110b99ac9431850
+staging/database.rules.forwardfix.json  a297d2f91f4acb57994e5b9d0ca9d810133ceca1a6ccdb8cdf228c1e31dea29c
+staging/guard_no_prod.sh  4541527c09581444a7a23555f939a377d48039c559cd5d09d774f59b62fb0c01
+backend/p0_staging_smoke_test.js  8aa16e544fcdc1d5c70ce8fd82c9284cc019cb80c27e9d8b5fd84da529e7cd23
+backend/p0_staging_smoke_result.txt  dbc460e51e18548537a2a65b750d1d9283f1533c901ba83fb262efafdefb9c8e
+p0_staging_release_runbook.md  e370ae36e36b8ef8b3e4ae80cdea97374dbd3f2d7492ca2e5955e94355cbc6ae
+p0_staging_release_evidence.md  2e132f6afeba1859930a3c17183c552dd4827defa8f815d99e936275ec585caa
 # frozen baselines (unchanged)
 stallmate_v7.9.8.13.html  523df939fae65166c30fce6394f12a7b780927cdcee4a3e02836a3388a9cb58e
 stallmate_v7.9.8.14.html  d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11

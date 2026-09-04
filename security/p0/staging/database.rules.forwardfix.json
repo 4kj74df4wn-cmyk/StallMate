@@ -1,0 +1,62 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "roomOwners": {
+      "$roomCode": {
+        ".read": "auth != null && auth.uid === data.val()",
+        ".write": false
+      }
+    },
+    "rooms": {
+      "$roomCode": {
+        ".read": "auth != null && auth.uid === root.child('roomOwners').child($roomCode).val()",
+        ".write": false
+      }
+    },
+    "trialRegistry": {
+      "$deviceId": {
+        ".read": "auth != null && data.child('boundUid').val() === auth.uid",
+        ".write": false
+      }
+    },
+    "licenses": {
+      ".read": false,
+      ".write": false,
+      "$code": {
+        ".read": "auth != null && data.child('boundTo').val() === auth.uid",
+        ".write": false
+      }
+    },
+    "shopProfiles": {
+      "$ownerId": {
+        ".read": "auth != null && auth.uid === $ownerId",
+        ".write": false
+      }
+    },
+    "config": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "affiliateConfig": {
+      ".read": false,
+      ".write": false
+    },
+    "pilotOverrides": {
+      ".read": false,
+      ".write": false
+    },
+    "affiliates": {
+      ".read": false,
+      ".write": false
+    },
+    "referrals": {
+      ".read": false,
+      ".write": false
+    },
+    "dailyLoads": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

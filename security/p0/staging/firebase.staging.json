@@ -1,6 +1,6 @@
 {
-  "//": "StallMate P0 — STAGING deploy config (PREPARED, NOT USED). Repo: security/p0/staging/firebase.staging.json. Targets the staging project ONLY via --project staging alias. Deploy is gated on Blaze + Room 00 per-release authorization. Production project stallmate-9caac is never referenced here.",
-  "database": { "rules": "database.rules.json" },
+  "//": "StallMate P0 — STAGING deploy config (PREPARED, NOT USED). Repo: security/p0/staging/firebase.staging.json. Use ONLY with --project staging and --config security/p0/staging/firebase.staging.json. The production project is never referenced here (bindings live only in .firebaserc). SR3 deploys database.rules.B.json (Rules B); rollback deploys database.rules.forwardfix.json (secure last-known-secure), never the insecure legacy ruleset.",
+  "database": { "rules": "database.rules.B.json" },
   "functions": { "source": "../functions", "runtime": "nodejs20" },
   "emulators": {
     "auth": { "host": "127.0.0.1", "port": 9099 },

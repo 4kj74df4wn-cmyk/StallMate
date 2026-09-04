@@ -1,0 +1,13 @@
+StallMate P0 — STAGING SMOKE TEST OUTPUT (owner-binding contract; synthetic; no prod data)
+Pre-deploy validation via handler against RTDB emulator (post-deploy: same assertions vs deployed callable).
+Date: 2026-09-04T17:41:17Z
+============================================================
+  PASS valid bind (owner+intended claim) => ALLOW
+  PASS anonymous => DENY
+  PASS wrong UID => DENY
+  PASS replay => DENY
+  PASS expired => DENY
+  PASS tampered => DENY
+  PASS already-bound => DENY + owner unchanged (no takeover)
+
+=== STAGING SMOKE: 7/7 PASS, 0 FAIL ===
