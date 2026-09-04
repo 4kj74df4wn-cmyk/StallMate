@@ -1,0 +1,14 @@
+StallMate P0 R3 — RULES INTEGRATION — SHA-256 MANIFEST
+Generated: 2026-09-04T16:36:09Z
+========================================================
+# backend/ (new for R3)
+backend/p0_r3_rules_integration_tests.js  df19e7cab94e7217d87fa38c9399a5c6a5389daee3eb50330771289c20cac710
+backend/p0_r3_results.txt  da4539d026668c0716184c9ff90627055fef583a76a7733fb2f28009a6acdaa6
+backend/p0_r3_evidence.md  460c00edcd1a3994d6d3c442a27b19aaa5b5440f4ce1ad5aac76c2f300745764
+# reused (already committed)
+auth/stallmate_auth.js  3396d34e524bce6757a0b0cf865f5a08af113c4c7d9168414cdf6ff45bbed206
+backend/p0_r2_owner_binding.js  084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
+security/p0/p0_rulesB_secure_fallback.rules.json  09d06066b50591add8243c67f3f03455ddb4d1bfeb8c1ee63708d6daaf8d0e23
+# frozen baselines (unchanged)
+stallmate_v7.9.8.13.html  523df939fae65166c30fce6394f12a7b780927cdcee4a3e02836a3388a9cb58e
+stallmate_v7.9.8.14.html  d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11

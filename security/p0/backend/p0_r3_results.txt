@@ -1,0 +1,27 @@
+StallMate P0 R3 — RULES INTEGRATION (Rules B enforced) — OUTPUT
+Run from git-layout mirror (rulesB at security/p0/, test at security/p0/backend/, auth at security/p0/auth/).
+Runner: RTDB emulator jar v4.11.2 + @firebase/rules-unit-testing 5 (CLIENT contexts, rules ENFORCED). Synthetic only.
+Date: 2026-09-04T16:36:09Z
+============================================================
+  PASS owner create MODERN sale => ALLOW
+  PASS owner create LEGACY sale => ALLOW
+  PASS owner update session => ALLOW
+  PASS owner read own roomOwners => ALLOW
+  PASS anonymous create sale => DENY
+  PASS authed UNBOUND user create sale => DENY
+  PASS wrong-owner (OTHER) write to BBMANN => DENY
+  PASS owner hard-delete sale => DENY
+  PASS owner whole-room delete => DENY
+  PASS owner null a money field => DENY
+  PASS owner cannot rewrite roomOwners (takeover) => DENY
+  PASS stranger cannot claim roomOwners (takeover) => DENY
+  PASS stranger cannot read others roomOwners => DENY
+  PASS idempotent replay under rules => exactly one (opDet1)
+  PASS same opId + changed amount under rules => OPID_CONFLICT
+  PASS original financial record unchanged after conflict
+  PASS integrated: bound owner authorized (verifier reads roomOwners under rules)
+  PASS integrated: guarded owner sale write ok under rules
+  PASS integrated: sale persisted at deterministic opId key
+  PASS integrated: unauthenticated guarded write blocked+queued (rules also deny)
+
+=== R3 SUITE: 20/20 PASS, 0 FAIL ===
