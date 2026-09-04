@@ -112,8 +112,11 @@ function createAuthController(deps){
     if (!q.some(e => e.opId === opId)) q.push({ opId, snapshot, reason, at: d.now ? d.now() : Date.now() });
     _writeQueue(q); // throws if storage fails -> caller surfaces, no network write attempted
   }
+  // returns true only if cleanup durably succeeded; false surfaces recovery-required
   function _removePending(opId){
-    const q = _readQueue(); if (q === null) return; _writeQueue(q.filter(e => e.opId !== opId));
+    let q; try { q = _readQueue(); } catch(e){ return false; }
+    if (q === null) return false;                 // unreadable
+    try { _writeQueue(q.filter(e => e.opId !== opId)); return true; } catch(e){ return false; } // write failure
   }
 
   /**
@@ -132,7 +135,9 @@ function createAuthController(deps){
     if (!online){ return { ok:false, queued:true, reason:'offline', opId }; }
     try {
       await writeFn(snapshot, opId);              // deterministic key = opId (writer's contract)
-      _removePending(opId);                        // remove ONLY after durable ack
+      const removed = _removePending(opId);        // remove ONLY after durable ack
+      // B3: remote committed but local cleanup failed => recovery-required, NOT false success
+      if (!removed) return { ok:false, remoteCommitted:true, recoveryRequired:true, opId };
       return { ok:true, queued:false, opId };
     } catch(e){
       return { ok:false, queued:true, reason:'write_failed', opId }; // stays queued (fail-closed)
@@ -143,13 +148,18 @@ function createAuthController(deps){
   async function flushPendingSales(writeFn){
     if (!(await isOwnerAuthorized())) return { flushed:0, remaining:(_readQueue()||[]).length, blocked:'not_owner_authorized' };
     const q = _readQueue(); if (q === null) return { flushed:0, remaining:-1, blocked:'queue_unreadable', recoveryRequired:true };
-    let flushed = 0; const seen = new Set();
+    let flushed = 0; let recoveryRequired = false; const seen = new Set();
     for (const entry of q){
       if (seen.has(entry.opId)) continue; seen.add(entry.opId);
-      try { await writeFn(entry.snapshot, entry.opId); _removePending(entry.opId); flushed++; }
-      catch(e){ /* keep queued */ }
+      try {
+        await writeFn(entry.snapshot, entry.opId);
+        const removed = _removePending(entry.opId);
+        if (removed) flushed++;                 // count only when durably cleared
+        else { recoveryRequired = true; break; } // cleanup failed -> surface, do NOT report cleared
+      } catch(e){ /* keep queued (write failed) */ }
     }
-    return { flushed, remaining: (_readQueue()||[]).length };
+    const rem = _readQueue();
+    return { flushed, remaining: rem === null ? -1 : rem.length, recoveryRequired: recoveryRequired || rem === null };
   }
 
   function pendingCount(){ const q = _readQueue(); return q === null ? -1 : q.length; }

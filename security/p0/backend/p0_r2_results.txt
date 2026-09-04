@@ -1,26 +1,36 @@
-StallMate P0 R2 (LOCAL) — owner-binding + deterministic writer — OUTPUT
-Runner: firebase-database-emulator jar v4.11.2 (Java 21 on prod machine / 11 in HQ sandbox) + firebase-admin 12 (Admin SDK)
-Date: 2026-09-04T04:26:21Z
-Auth identity injected as Functions runtime provides context.auth (Auth-verified). Synthetic only, no prod.
+StallMate P0 R2 (LOCAL) HOLD-1 CORRECTED — OUTPUT
+Runner: firebase-database-emulator jar v4.11.2 + firebase-admin 12 (Admin SDK). Auth identity injected as context.auth. Synthetic only.
+Date: 2026-09-04T06:37:04Z
 ============================================================
-  PASS anonymous identity => bind DENIED
-  PASS unauthenticated => bind DENIED
-  PASS valid owner+claim => bound
-  PASS roomOwners/BBMANN = ownerA
-  PASS audit event recorded
-  PASS audit has NO token/secret/pin/nonce (claimId=hash only)
-  PASS tampered claim => DENIED
-  PASS expired claim => DENIED
-  PASS claim for another room => DENIED
-  PASS replayed claim (same nonce) => DENIED
-  PASS second bind on owned room => already_bound (no reassignment)
-  PASS owner unchanged after takeover attempt (no silent takeover)
-  PASS verifier: bound uid => true
-  PASS verifier: wrong uid => false
-  PASS writer commit-then-timeout surfaced to client
-  PASS replay same opId => EXACTLY ONE sale
-  PASS restart + replay => still exactly one
+  PASS anonymous => DENY
+  PASS unauthenticated => DENY
+  PASS B1: valid claim + intended UID => ALLOW
+  PASS roomOwners=ownerA
+  PASS B1: same claim + different permanent UID => DENY
+  PASS B1: owner remains unchanged (no binding created)
+  PASS audit has no token/secret/pin/nonce
+  PASS tampered => DENY
+  PASS expired => DENY
+  PASS room mismatch => DENY
+  PASS replay (same nonce) => DENY
+  PASS already-bound => DENY
+  PASS owner unchanged (no takeover)
+  PASS multi-dot token => DENY
+  PASS no-dot token => DENY
+  PASS invalid room key => DENY
+  PASS isValidKey rejects Firebase-invalid keys
+  PASS verifier true/false
+  PASS writer commit-then-timeout surfaced
+  PASS B2: identical replay => idempotent success
+  PASS B2: exactly one sale, unchanged
+  PASS B2: same opId + changed amount => OPID_CONFLICT
+  PASS B2: original financial record unchanged
+  PASS B2: invalid opId key => rejected
+  PASS B3: cleanup READ failure after ack => recovery-required (not false success)
+  PASS B3: cleanup WRITE failure after ack => recovery-required
+  PASS B3: flush cleanup failure => recoveryRequired, not reported cleared
   PASS e2e: bound owner authorized
-  PASS e2e: guarded sale write ok
-  PASS e2e: exactly one sale persisted at opId key
-=== R2 SUITE: 20/20 PASS, 0 FAIL ===
+  PASS e2e: guarded write ok
+  PASS e2e: exactly one sale
+
+=== R2 SUITE: 30/30 PASS, 0 FAIL ===
