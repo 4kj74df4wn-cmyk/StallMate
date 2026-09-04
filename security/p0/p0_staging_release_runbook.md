@@ -20,7 +20,16 @@ If the guard exits non-zero, or `firebase use` does not resolve to `stallmate-st
 - `staging/firebase.staging.json` — `database.rules` = **`database.rules.B.json`**; functions source `../functions`.
 - `staging/database.rules.B.json` — Rules B deploy artifact (SR3), SHA `78fcd0882c73085bf1f32d5ccf7a73869c54f95c2c9731010110b99ac9431850`.
 - `staging/database.rules.forwardfix.json` — **last-known-secure rollback artifact (exists BEFORE SR3)**, SHA `a297d2f91f4acb57994e5b9d0ca9d810133ceca1a6ccdb8cdf228c1e31dea29c`.
-- `p0_staging_smoke_test.js` — post-deploy verification (7 cases).
+- `staging/firebase.rollback.json` — dedicated rules-rollback config (→ forwardfix), SHA `46a7b67363cb6debe615ef1d41b6f0b65659fed414f0406f5d67420267adb3f9`.
+- `backend/p0_staging_smoke_test.js` — **PRE-DEPLOY LOCAL** smoke (handler+emulator), result 7/7.
+- `backend/p0_staging_smoke_postdeploy.js` — **POST-DEPLOY** smoke (live staging Auth + deployed callable + staging RTDB); PREPARED, no PASS until real deploy.
+
+## SEQUENCING (Room 00-ordered)
+1. HOLD-2 corrections (this package).
+2. Build **SR1 staging client build** first — **no Blaze needed** (separate round; SR1 currently PREPARED-NOT-DEPLOYABLE).
+3. Verify SR1 on staging.
+4. Then June approves cost + activates Blaze on **staging only**.
+5. Deploy SR2 after a separate Room 00 gate; then SR3 after §E gate.
 
 ## Preconditions (ALL required before any deploy)
 1. Room 00: `BLAZE ACTIVATION — STAGING PROJECT ONLY AUTHORIZED`.
@@ -34,10 +43,15 @@ If the guard exits non-zero, or `firebase use` does not resolve to `stallmate-st
 The R1 auth module (`security/p0/auth/stallmate_auth.js`) is reviewed and unit-tested, but **no full staging client build/app artifact exists in this commit**. SR1 is therefore **declared PREPARED-NOT-DEPLOYABLE**: integrating the module into a staging client build (staging Firebase config, wired into the app) is a separate future artifact and is NOT part of this release. No SR1 deploy occurs.
 
 ### SR2 — owner-binding Function (needs Blaze)
-- Pre-flight guard (above). Build step: `cp ../backend/p0_r2_owner_binding.js ../functions/` (gitignored copy).
-- Deploy: `firebase deploy --only functions:bindOwner --project staging --config security/p0/staging/firebase.staging.json`
-- Verify: `FIREBASE... node ../backend/p0_staging_smoke_test.js` in callable mode against staging (7 cases: valid, anon, wrong UID, replay, expired, tampered, already-bound/no-takeover) → 7/7, redacted result + SHA.
-- **Rollback (precise):** `firebase functions:delete bindOwner --region asia-southeast1 --project staging --force` (non-interactive; region explicit). Existing `roomOwners` bindings persist.
+- **Canonical execution (run from `security/p0/staging`, relative `--config`):**
+  ```
+  cd security/p0/staging
+  ./guard_no_prod.sh
+  cp ../backend/p0_r2_owner_binding.js ../functions/    # build-copy (gitignored)
+  firebase deploy --only functions:bindOwner --project staging --config firebase.staging.json
+  ```
+- **Verify (POST-DEPLOY, live callable + staging Auth):** set env (STAGING_API_KEY/AUTH_DOMAIN/PROJECT_ID/DATABASE_URL + OWNER_BIND_SECRET out-of-band), then `node ../backend/p0_staging_smoke_postdeploy.js` → 7 cases (valid, anon, wrong UID, replay, expired, tampered, already-bound/no-takeover) → **7/7**, redacted result + exit code + SHA. (Pre-deploy local logic already proven: PRE-DEPLOY LOCAL SMOKE 7/7.)
+- **Rollback (precise):** `firebase functions:delete bindOwner --region asia-southeast1 --project staging --force` (region explicit, non-interactive). Existing `roomOwners` bindings persist.
 - Monitoring: function error rate, permission-denied.
 
 ### SR3 — tighten rules to Rules B (after §E readiness gate)
@@ -46,9 +60,22 @@ The R1 auth module (`security/p0/auth/stallmate_auth.js`) is reviewed and unit-t
   ```
   test "$(shasum -a256 staging/database.rules.B.json | awk '{print $1}')" = "78fcd0882c73085bf1f32d5ccf7a73869c54f95c2c9731010110b99ac9431850" || { echo RULES_B_SHA_MISMATCH; exit 2; }
   ```
-- Deploy: `firebase deploy --only database --project staging --config security/p0/staging/firebase.staging.json` (config → `database.rules.B.json`).
+- **Canonical execution (from `security/p0/staging`, relative `--config`):**
+  ```
+  cd security/p0/staging
+  ./guard_no_prod.sh
+  firebase deploy --only database --project staging --config firebase.staging.json   # config -> database.rules.B.json
+  ```
 - Verify: run R3 integration behaviour against staging (owner ALLOW; anon/unbound/wrong-owner/delete/takeover DENY; idempotency/OPID_CONFLICT).
-- **Rollback (secure, artifact pre-exists):** point config `database.rules` → `database.rules.forwardfix.json`, SHA-verify `= a297d2f9…`, then `firebase deploy --only database --project staging`. **Never** deploy the insecure legacy ruleset. After SR3 stable, snapshot the live rules as `rules_lastknownsecure_<ts>.json`.
+- **Rollback (secure, dedicated config, no hand-editing):**
+  ```
+  cd security/p0/staging
+  test "$(shasum -a256 firebase.rollback.json | awk '{print $1}')" = "46a7b67363cb6debe615ef1d41b6f0b65659fed414f0406f5d67420267adb3f9" || { echo ROLLBACK_CFG_SHA_MISMATCH; exit 2; }
+  test "$(shasum -a256 database.rules.forwardfix.json | awk '{print $1}')" = "a297d2f91f4acb57994e5b9d0ca9d810133ceca1a6ccdb8cdf228c1e31dea29c" || { echo FORWARDFIX_SHA_MISMATCH; exit 2; }
+  ./guard_no_prod.sh
+  firebase deploy --only database --project staging --config firebase.rollback.json
+  ```
+  `firebase.rollback.json` → `database.rules.forwardfix.json` (secure last-known-secure, exists BEFORE SR3). **Never** hand-edit config during an incident; **never** deploy without `--config`; **never** the insecure legacy ruleset. After SR3 stable, snapshot the live rules as `rules_lastknownsecure_<ts>.json`.
 - Monitoring: permission-denied on owner ops (halt on sustained > 0), sync/sale-write failure (halt on first).
 
 ## Guardrails (every step)

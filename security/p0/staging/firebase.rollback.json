@@ -1,0 +1,4 @@
+{
+  "//": "StallMate P0 — STAGING RULES ROLLBACK config (PREPARED, NOT USED). Repo: security/p0/staging/firebase.rollback.json. Deploys the secure last-known-secure ruleset (database.rules.forwardfix.json) via: cd security/p0/staging && ./guard_no_prod.sh && firebase deploy --only database --project staging --config firebase.rollback.json. SHA-verify BOTH this config and database.rules.forwardfix.json before use. Never hand-edit config during an incident; never deploy without --config. Never the insecure legacy ruleset.",
+  "database": { "rules": "database.rules.forwardfix.json" }
+}

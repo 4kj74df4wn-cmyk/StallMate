@@ -24,7 +24,7 @@ const ctx=(uid,prov)=>({auth:{uid,token:{firebase:{sign_in_provider:prov}}}});
 const claim=(room,nonce,uid,ttl=60000,now=Date.now())=>signClaim({roomCode:room,intendedUid:uid,nonce,exp:now+ttl},SECRET);
 
 (async()=>{
-  console.log('=== P0 STAGING SMOKE TEST (owner-binding contract; synthetic; no prod data) ===');
+  console.log('=== P0 PRE-DEPLOY LOCAL SMOKE (owner-binding contract; handler+emulator; synthetic; no prod) ===');
   const h=createOwnerBindingHandler({db:DB,secret:SECRET});
 
   await reset();
@@ -53,6 +53,6 @@ const claim=(room,nonce,uid,ttl=60000,now=Date.now())=>signClaim({roomCode:room,
     const owner=(await DB.ref('roomOwners/SMOKE').once('value')).val();
     ok(r.code==='already_bound' && owner==='ownerA','already-bound => DENY + owner unchanged (no takeover)'); }
 
-  console.log('\n=== STAGING SMOKE: '+pass+'/'+(pass+fail)+' PASS, '+fail+' FAIL ===');
+  console.log('\n=== PRE-DEPLOY LOCAL SMOKE: '+pass+'/'+(pass+fail)+' PASS, '+fail+' FAIL ===');
   process.exit(fail===0?0:1);
 })().catch(e=>{console.error('RUNNER ERROR',e&&e.stack||e);process.exit(2);});
