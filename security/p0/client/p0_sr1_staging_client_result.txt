@@ -1,0 +1,15 @@
+StallMate P0 — SR1 STAGING CLIENT BUILD — OUTPUT (R1 auth wired; synthetic; no prod)
+Local verification vs Auth emulator (9099) + RTDB emulator (9000) as staging proxy. Staging run injects staging config.
+Date: 2026-09-05T03:53:41Z
+============================================================
+  PASS anonymous bootstrap = device identity (not owner)
+  PASS anonymous not owner-authorized
+  PASS permanent sign-in = permanent identity
+  PASS sign-out clears identity
+  PASS re-auth restores permanent identity
+  PASS bound owner => owner-authorized
+  PASS offline sale queued (not written)
+  PASS reconnect + flush writes queued sale
+  PASS exactly one sale persisted at deterministic opId key
+
+=== SR1 CLIENT: 9/9 PASS, 0 FAIL ===

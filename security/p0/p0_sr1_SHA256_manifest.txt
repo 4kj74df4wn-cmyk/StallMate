@@ -1,0 +1,12 @@
+StallMate P0 — SR1 CLIENT + PRE-SR2 SMOKE CORRECTIONS — SHA-256 MANIFEST
+Generated: 2026-09-05T03:54:51Z
+========================================================
+client/p0_sr1_staging_client.js  e612c71d7f2db05c8654bc5f277f3ca92955cc19ec21fa1954c659effd4ac1e8
+client/p0_sr1_staging_client_result.txt  15a016f96c44b0fa4de396b272756678e9412841c58572d0a02d9f123d0d7c1f
+backend/p0_staging_smoke_postdeploy.js  d5bb8a15fd34501b41ed7f1629ba8d9e92234224d0061d4afb307fc50a6d4a6f
+package.json (security/p0/)  cf44a24e769aac030b2aa1b4f16a1493c3956e98773635de281a5e51d6c8daa6
+package-lock.json (security/p0/)  2847c4b6dbbce0469adee8362877d3427800f2d9a7563165cc53011d5365a7b0
+p0_sr1_evidence.md  ba7d05a47e23f3178d12db8b4862280150d43f38b7ae01eb2757cc0427184607
+# frozen baselines (unchanged)
+stallmate_v7.9.8.13.html  523df939fae65166c30fce6394f12a7b780927cdcee4a3e02836a3388a9cb58e
+stallmate_v7.9.8.14.html  d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11

@@ -1,0 +1,11 @@
+{
+  "name": "stallmate-p0-backend-runners",
+  "description": "P0 test/verification runners (R2 handler tests, R3 rules integration, SR1 staging client, pre/post-deploy smoke). Not part of the deployed Function bundle.",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "firebase": "^10.14.1",
+    "firebase-admin": "^12.0.0",
+    "@firebase/rules-unit-testing": "^5.0.2"
+  }
+}
