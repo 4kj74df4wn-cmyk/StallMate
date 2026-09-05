@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>StallMate P0 — SR1 Staging Client (isolated; NOT the frozen app)</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Sarabun,sans-serif;max-width:760px;margin:18px auto;padding:0 12px;color:#111}
+  h1{font-size:18px} .muted{color:#666;font-size:12px}
+  fieldset{border:1px solid #ddd;border-radius:8px;margin:10px 0;padding:10px}
+  legend{font-weight:700;font-size:13px}
+  button{padding:7px 10px;margin:3px;border:1px solid #bbb;border-radius:6px;background:#f7f7f7;cursor:pointer}
+  input{padding:6px;border:1px solid #ccc;border-radius:6px;margin:2px}
+  #log{white-space:pre-wrap;background:#0b1020;color:#cde;padding:10px;border-radius:8px;height:220px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px}
+  .ok{color:#1a7f37}.bad{color:#b42318}.state{font-weight:700}
+</style>
+</head>
+<body>
+<h1>StallMate P0 — SR1 Staging Client</h1>
+<p class="muted">Isolated staging test client (derived from .14 sale/satang model). <b>Not</b> the frozen production app; frozen .13/.14 are untouched. Staging project only. No production. No live owner binding (that is the R2 callable).</p>
+
+<div>Config: <span id="cfg" class="state">…</span> · Auth: <span id="auth" class="state">…</span> · Online: <span id="net" class="state">yes</span> · Pending: <span id="pend" class="state">0</span></div>
+
+<fieldset><legend>Auth flows (R1)</legend>
+  <button id="btnAnon">Anonymous bootstrap</button>
+  <input id="email" placeholder="owner email"/><input id="pw" type="password" placeholder="password"/>
+  <button id="btnSignin">Owner sign-in</button>
+  <button id="btnSignout">Sign out</button>
+  <button id="btnReauth">Re-auth owner</button>
+</fieldset>
+
+<fieldset><legend>Sale write + recovery</legend>
+  <button id="btnOffline">Toggle offline</button>
+  opId <input id="opid" value="op-1" size="8"/> total <input id="total" value="250" size="6"/> totalSatang <input id="tsat" value="25000" size="8"/>
+  <button id="btnSale">Record sale (guarded)</button>
+  <button id="btnFlush">Reconnect &amp; replay (flush)</button>
+  <span id="devseed"></span>
+</fieldset>
+
+<div id="log"></div>
+
+<!-- classic script: exposes window.StallMateAuth (single source; generated from stallmate_auth.js) -->
+<script src="stallmate_auth.browser.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, connectAuthEmulator, onAuthStateChanged, onIdTokenChanged, signInAnonymously, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getDatabase, connectDatabaseEmulator, ref, set, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+const STAGING_PROJECT = "stallmate-staging-2026-5f39f";
+const params = new URLSearchParams(location.search);
+const EMU = params.get("emulator") === "1";
+const L = (m,cls)=>{ const d=document.getElementById("log"); d.innerHTML += (cls?`<span class="${cls}">${m}</span>`:m)+"\n"; d.scrollTop=d.scrollHeight; };
+const setTxt=(id,t)=>document.getElementById(id).textContent=t;
+
+// config: emulator (?emulator=1) OR injected staging config (window.__SM_STAGING__ from staging-config.js)
+let cfg;
+if (EMU){ cfg={ apiKey:"demo", authDomain:"localhost", projectId:"demo-sr1", databaseURL:"http://127.0.0.1:9000?ns=demo-sr1" }; setTxt("cfg","EMULATOR (demo-sr1)"); }
+else {
+  cfg = window.__SM_STAGING__;
+  if (!cfg){ L("No staging config. Create staging-config.js (see staging-config.example.js), or open with ?emulator=1.","bad"); throw new Error("no config"); }
+  if (cfg.projectId !== STAGING_PROJECT){ L("REFUSING: projectId is not the staging allowlist ("+cfg.projectId+")","bad"); throw new Error("bad project"); }
+  if (!/^https:\/\//.test(cfg.databaseURL) || cfg.databaseURL.indexOf("stallmate-9caac")!==-1 || !(cfg.databaseURL.indexOf(STAGING_PROJECT)!==-1 && /(firebasedatabase\.app|firebaseio\.com)/.test(cfg.databaseURL))){ L("REFUSING: databaseURL is not a verified staging RTDB instance","bad"); throw new Error("bad db url"); }
+  setTxt("cfg","STAGING "+cfg.projectId);
+}
+
+const app = initializeApp(cfg, "sr1app");
+const auth = getAuth(app); const db = getDatabase(app);
+if (EMU){ connectAuthEmulator(auth,"http://127.0.0.1:9099",{disableWarnings:true}); connectDatabaseEmulator(db,"127.0.0.1",9000); }
+
+const ROOM = "SR1_TEST_" + Date.now().toString(36);   // unique synthetic room, never a real shop code
+let online = true;
+const storage = { getItem:k=>localStorage.getItem("SR1_"+k), setItem:(k,v)=>localStorage.setItem("SR1_"+k,v), removeItem:k=>localStorage.removeItem("SR1_"+k) };
+
+// canonical compare (matches the backend writer) for OPID_CONFLICT correctness
+function canon(v){ if(v===null||typeof v!=="object")return JSON.stringify(v); if(Array.isArray(v))return "["+v.map(canon).join(",")+"]"; return "{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+canon(v[k])).join(",")+"}"; }
+// B2: create-only + idempotent-equal + OPID_CONFLICT
+function clientWriter(room){ return async (snap,opId)=>{ const t=canon(snap);
+  const r=await runTransaction(ref(db,`rooms/${room}/salesRecords/${opId}`), cur=>{ if(cur===null)return snap; if(canon(cur)===t)return cur; return; });
+  if(!r.committed){ const e=new Error("OPID_CONFLICT"); e.code="OPID_CONFLICT"; throw e; } return {ok:true}; }; }
+
+const ctrl = window.StallMateAuth.createAuthController({
+  auth, signInAnonymously, signInWithEmailAndPassword, signOut, onAuthStateChanged, onIdTokenChanged,
+  storage, isOnline:()=>online, genOpId:()=>document.getElementById("opid").value||("op-"+Date.now()),
+  verifyOwnerBinding: async(uid)=>{ try{ const s=await get(ref(db,"roomOwners/"+ROOM)); return s.exists()&&s.val()===uid; }catch(e){ return false; } }
+});
+ctrl.init();
+ctrl.onState(id=>{ setTxt("auth", id.signedIn?(id.isAnonymous?"anonymous":"owner:"+id.uid.slice(0,6)):"signed-out"); setTxt("pend", String(ctrl.pendingCount())); });
+const refresh=()=>setTxt("pend", String(ctrl.pendingCount()));
+const w = clientWriter(ROOM);
+
+document.getElementById("btnAnon").onclick=async()=>{ const id=await ctrl.signInAnon(); L("anon bootstrap uid="+id.uid.slice(0,6)+" permanent="+id.permanentIdentity, id.permanentIdentity?"bad":"ok"); };
+document.getElementById("btnSignin").onclick=async()=>{ try{ const id=await ctrl.signInOwner(email.value,pw.value); L("owner sign-in permanent="+id.permanentIdentity,"ok"); }catch(e){ L("sign-in error: "+e.message,"bad"); } };
+document.getElementById("btnSignout").onclick=async()=>{ await ctrl.signOut(); L("signed out"); };
+document.getElementById("btnReauth").onclick=async()=>{ try{ const id=await ctrl.reAuthOwner(email.value,pw.value); L("re-auth permanent="+id.permanentIdentity,"ok"); }catch(e){ L("re-auth error: "+e.message,"bad"); } };
+document.getElementById("btnOffline").onclick=()=>{ online=!online; setTxt("net", online?"yes":"no"); L("online="+online); };
+document.getElementById("btnSale").onclick=async()=>{ const s={ id:"s1", orderId:"o1", time:Date.now(), total:Number(total.value), totalSatang:Number(tsat.value), cashAmount:Number(total.value), cashSatang:Number(tsat.value), __opId:document.getElementById("opid").value };
+  try{ const r=await ctrl.guardedSaleWrite(s,w); L("sale result: "+JSON.stringify(r), r.ok?"ok":"bad"); }catch(e){ L("sale "+(e.code||e.message),"bad"); } refresh(); };
+document.getElementById("btnFlush").onclick=async()=>{ const r=await ctrl.flushPendingSales(w); L("flush: "+JSON.stringify(r), r.recoveryRequired?"bad":"ok"); refresh(); };
+
+// EMULATOR-ONLY dev helper to simulate an R2-bound owner (never shown/enabled against staging)
+if (EMU){ const b=document.createElement("button"); b.textContent="Seed owner (emulator only)";
+  b.onclick=async()=>{ if(!auth.currentUser){ L("sign in first","bad"); return; } await set(ref(db,"roomOwners/"+ROOM), auth.currentUser.uid); L("emulator: roomOwners seeded (dev only)","ok"); };
+  document.getElementById("devseed").appendChild(b); }
+L("SR1 staging client ready. room="+ROOM+(EMU?" [EMULATOR]":" [STAGING]"));
+</script>
+</body>
+</html>
