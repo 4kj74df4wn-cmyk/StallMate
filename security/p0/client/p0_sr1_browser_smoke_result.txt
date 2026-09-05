@@ -1,0 +1,22 @@
+StallMate P0 — SR1 BROWSER-BUILD DOM SMOKE OUTPUT (jsdom + emulators; synthetic; no prod)
+HQ sandbox is arm64 with no runnable Chromium; this jsdom run loads the ACTUAL browser artifact
+(stallmate_auth.browser.js) into a DOM window and drives the flows. Full-Chromium click-through = June/CI (README).
+Date: 2026-09-05T04:31:05Z
+============================================================
+  PASS index.html loads staging-config.js (B1)
+  PASS index.html has emulator create-owner wiring (B2)
+  PASS index.html loads the browser auth build
+  PASS index.html uses synthetic room + staging allowlist (B3)
+  PASS browser build exposes window.StallMateAuth.createAuthController
+  PASS DOM: anonymous bootstrap (device identity)
+  PASS DOM: permanent sign-in
+  PASS DOM: sign-out
+  PASS DOM: re-auth
+  PASS DOM: bound owner authorized
+  PASS DOM: offline sale queued (amounts unchanged)
+  PASS DOM: reconnect flush writes queued sale
+  PASS DOM: same opId + changed amount => opid_conflict surfaced
+  PASS DOM: original financial record unchanged
+  PASS DOM: conflict quarantined, not in active replay
+  PASS DOM: conflict not auto-retried on flush
+=== SR1 BROWSER-BUILD DOM SMOKE: 16/16 PASS, 0 FAIL ===

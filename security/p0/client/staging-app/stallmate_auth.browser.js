@@ -1,4 +1,4 @@
-// AUTO-GENERATED browser build of stallmate_auth.js (same logic; CommonJS export -> window.StallMateAuth).
+// AUTO-GENERATED browser build of stallmate_auth.js (same logic; export -> window.StallMateAuth).
 /**
  * StallMate P0 R1 — Client-Auth Foundation (security/p0-containment). HOLD-1 CORRECTED.
  * STAGING/EMULATOR ONLY. Does NOT modify the frozen app (.14) or any rules.
@@ -119,6 +119,14 @@ function createAuthController(deps){
     if (q === null) return false;                 // unreadable
     try { _writeQueue(q.filter(e => e.opId !== opId)); return true; } catch(e){ return false; } // write failure
   }
+  // quarantine a pending record (kept for audit, excluded from normal replay). No infinite retry.
+  function _quarantine(opId){
+    let q; try { q = _readQueue(); } catch(e){ return false; }
+    if (q === null) return false;
+    let changed = false;
+    q = q.map(e => (e.opId === opId ? (changed = true, Object.assign({}, e, { quarantined:true })) : e));
+    try { _writeQueue(q); return changed; } catch(e){ return false; }
+  }
 
   /**
    * guardedSaleWrite(sale, writeFn): durable-idempotent, fail-closed.
@@ -141,7 +149,9 @@ function createAuthController(deps){
       if (!removed) return { ok:false, remoteCommitted:true, recoveryRequired:true, opId };
       return { ok:true, queued:false, opId };
     } catch(e){
-      return { ok:false, queued:true, reason:'write_failed', opId }; // stays queued (fail-closed)
+      // OPID_CONFLICT: same opId, different financial snapshot -> surface + quarantine (NOT infinite retry)
+      if (e && e.code === 'OPID_CONFLICT'){ _quarantine(opId); return { ok:false, recoveryRequired:true, reason:'opid_conflict', opId }; }
+      return { ok:false, queued:true, reason:'write_failed', opId }; // other errors stay queued (fail-closed)
     }
   }
 
@@ -151,27 +161,33 @@ function createAuthController(deps){
     const q = _readQueue(); if (q === null) return { flushed:0, remaining:-1, blocked:'queue_unreadable', recoveryRequired:true };
     let flushed = 0; let recoveryRequired = false; const seen = new Set();
     for (const entry of q){
+      if (entry.quarantined) { recoveryRequired = true; continue; } // conflict: excluded from normal replay
       if (seen.has(entry.opId)) continue; seen.add(entry.opId);
       try {
         await writeFn(entry.snapshot, entry.opId);
         const removed = _removePending(entry.opId);
         if (removed) flushed++;                 // count only when durably cleared
         else { recoveryRequired = true; break; } // cleanup failed -> surface, do NOT report cleared
-      } catch(e){ /* keep queued (write failed) */ }
+      } catch(e){
+        if (e && e.code === 'OPID_CONFLICT'){ _quarantine(entry.opId); recoveryRequired = true; } // no auto-retry
+        /* other errors: keep queued (write failed) */
+      }
     }
     const rem = _readQueue();
     return { flushed, remaining: rem === null ? -1 : rem.length, recoveryRequired: recoveryRequired || rem === null };
   }
 
-  function pendingCount(){ const q = _readQueue(); return q === null ? -1 : q.length; }
+  // active (replayable) pending count excludes quarantined conflict records
+  function pendingCount(){ const q = _readQueue(); return q === null ? -1 : q.filter(e => !e.quarantined).length; }
+  function quarantinedCount(){ const q = _readQueue(); return q === null ? -1 : q.filter(e => e.quarantined).length; }
   // Surface pending-queue read/cleanup failure as recovery-required (never silently proceed).
-  function pendingHealth(){ const q = _readQueue(); return q === null ? { ok:false, recoveryRequired:true } : { ok:true, pending:q.length }; }
+  function pendingHealth(){ const q = _readQueue(); return q === null ? { ok:false, recoveryRequired:true } : { ok:true, pending:q.filter(e=>!e.quarantined).length, quarantined:q.filter(e=>e.quarantined).length }; }
 
   return {
     init, onState, getIdentity, isPermanentIdentity,
     signInAnon, signInOwner, signOut: signOutUser, reAuthOwner,
     assertNotOwnerAuthority, isOwnerAuthorized,
-    guardedSaleWrite, flushPendingSales, pendingCount, pendingHealth,
+    guardedSaleWrite, flushPendingSales, pendingCount, quarantinedCount, pendingHealth,
     _PENDING_KEY: PENDING_KEY
   };
 }

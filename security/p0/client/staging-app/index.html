@@ -24,6 +24,7 @@
 <fieldset><legend>Auth flows (R1)</legend>
   <button id="btnAnon">Anonymous bootstrap</button>
   <input id="email" placeholder="owner email"/><input id="pw" type="password" placeholder="password"/>
+  <button id="btnCreate" style="display:none">Create test owner (emulator)</button>
   <button id="btnSignin">Owner sign-in</button>
   <button id="btnSignout">Sign out</button>
   <button id="btnReauth">Re-auth owner</button>
@@ -39,11 +40,13 @@
 
 <div id="log"></div>
 
+<!-- staging config (staging mode only; gitignored; 404 is fine in emulator mode) -->
+<script src="staging-config.js"></script>
 <!-- classic script: exposes window.StallMateAuth (single source; generated from stallmate_auth.js) -->
 <script src="stallmate_auth.browser.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, connectAuthEmulator, onAuthStateChanged, onIdTokenChanged, signInAnonymously, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, connectAuthEmulator, onAuthStateChanged, onIdTokenChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getDatabase, connectDatabaseEmulator, ref, set, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
 const STAGING_PROJECT = "stallmate-staging-2026-5f39f";
@@ -97,6 +100,9 @@ document.getElementById("btnSale").onclick=async()=>{ const s={ id:"s1", orderId
   try{ const r=await ctrl.guardedSaleWrite(s,w); L("sale result: "+JSON.stringify(r), r.ok?"ok":"bad"); }catch(e){ L("sale "+(e.code||e.message),"bad"); } refresh(); };
 document.getElementById("btnFlush").onclick=async()=>{ const r=await ctrl.flushPendingSales(w); L("flush: "+JSON.stringify(r), r.recoveryRequired?"bad":"ok"); refresh(); };
 
+// EMULATOR-ONLY: create a test owner account (real staging/production must NOT auto-create accounts)
+if (EMU){ const cb=document.getElementById("btnCreate"); cb.style.display="inline-block";
+  cb.onclick=async()=>{ try{ await createUserWithEmailAndPassword(auth, email.value, pw.value); L("emulator: test owner created — now Owner sign-in","ok"); }catch(e){ L("create error: "+e.message,"bad"); } }; }
 // EMULATOR-ONLY dev helper to simulate an R2-bound owner (never shown/enabled against staging)
 if (EMU){ const b=document.createElement("button"); b.textContent="Seed owner (emulator only)";
   b.onclick=async()=>{ if(!auth.currentUser){ L("sign in first","bad"); return; } await set(ref(db,"roomOwners/"+ROOM), auth.currentUser.uid); L("emulator: roomOwners seeded (dev only)","ok"); };

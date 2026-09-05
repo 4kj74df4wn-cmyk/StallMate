@@ -96,11 +96,15 @@ async function emulatorSeedOwner(db, uid){ if (!EMU) throw new Error('seed is em
   const one = (await get(ref(db,'rooms/'+ROOM+'/salesRecords/sr1op'))).exists();
   ok(one===true, 'exactly one sale at deterministic opId key');
 
-  // B2: same opId + changed financial snapshot => OPID_CONFLICT, original unchanged
-  let code=null; try { await w({...sale(), total:1, totalSatang:100, __opId:'sr1op'}, 'sr1op'); } catch(e){ code=e.code; }
-  ok(code==='OPID_CONFLICT', 'same opId + changed amount => OPID_CONFLICT');
+  // B2+B3: same opId + changed financial snapshot THROUGH the app flow (guardedSaleWrite) => opid_conflict surfaced
+  const rc = await ctrl.guardedSaleWrite({...sale(), total:1, totalSatang:100, __opId:'sr1op'}, w);
+  ok(rc.ok===false && rc.reason==='opid_conflict' && rc.recoveryRequired===true, 'app flow: same opId + changed amount => opid_conflict surfaced');
   const v = (await get(ref(db,'rooms/'+ROOM+'/salesRecords/sr1op'))).val();
   ok(v && v.total===250 && v.totalSatang===25000, 'original financial record unchanged after conflict');
+  ok(ctrl.pendingCount()===0 && ctrl.quarantinedCount()===1, 'conflict quarantined (kept for audit, excluded from active replay)');
+  const rflush = await ctrl.flushPendingSales(w);
+  const v2 = (await get(ref(db,'rooms/'+ROOM+'/salesRecords/sr1op'))).val();
+  ok(rflush.flushed===0 && v2.total===250, 'conflict NOT auto-retried on flush (original unchanged)');
 
   console.log('\n=== SR1 CLIENT: '+pass+'/'+(pass+fail)+' PASS, '+fail+' FAIL ===');
   process.exit(fail===0?0:1);

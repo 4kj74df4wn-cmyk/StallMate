@@ -1,0 +1,27 @@
+SECURITY P0 — SR1 STAGING CLIENT — HOLD-2 CORRECTED — SHA256 MANIFEST
+Date: 5 Sep 2026. Synthetic/staging only. Frozen .13/.14 untouched. No deploy.
+
+Repo layout (security/p0-containment):
+  security/p0/auth/stallmate_auth.js                <- CHANGED (B3 quarantine/no-retry)
+  security/p0/client/staging-app/index.html         <- CHANGED (B1 config load, B2 create-owner)
+  security/p0/client/staging-app/stallmate_auth.browser.js  <- REGENERATED from auth (B3)
+  security/p0/client/p0_sr1_staging_client.js       <- CHANGED (13/13, app-flow conflict)
+  security/p0/client/p0_sr1_staging_client_result.txt
+  security/p0/client/p0_sr1_browser_smoke.js        <- NEW (HQ browser automation)
+  security/p0/client/p0_sr1_browser_smoke_result.txt<- NEW (16/16 PASS, exit 0)
+  security/p0/client/p0_sr1_evidence.md
+  security/p0/client/p0_sr1_SHA256_manifest.txt
+
+SHA256:
+65d1029de112ae092ca680bc463761f8d783bd070dcd154fc2a0acaedc40c009  stallmate_auth.js (security/p0/auth/)
+fd635c7b57f7e87baf2a6cfd47ffdfd18d96f466c55ba516970f8a67cb395fc6  staging-app/index.html
+ddccf4e92b42a47478146c12b52958b89e7d2ea9b695fde90d38eebd41e0fc44  staging-app/stallmate_auth.browser.js
+1ce7a0addd801d6be3ee0d6fd9720baae3170a2df28214ce19b863fbab82f479  p0_sr1_staging_client.js
+f49db575c80f5090ae542537e651cb4cdfa65a205ab9b44ee754ede46f3915ff  p0_sr1_staging_client_result.txt
+790a0014119733e478c1b251a39a02666419ea8fb17012be62b309186e4da1a4  p0_sr1_browser_smoke.js
+a7ef21feadfa76f69da25c579b7b00d716948b33b681cae69d3eccab239a3573  p0_sr1_browser_smoke_result.txt
+beb55dbf72155f61d5b3135ce2d3feffe2fd0980f7d4aee1cc62d05b2ea64844  p0_sr1_evidence.md
+
+Verification: SR1 CLIENT 13/13 · SR1 BROWSER-BUILD DOM SMOKE 16/16 (exit 0).
+Regression: R1 24/24 · R2 30/30 · R3 20/20 · Rules 213/213 · M2 209/209 · M0/M1 95/95 · negative 7/0.
+Frozen: .14 d806e672… / .13 523df939… unchanged; origin/main unchanged.

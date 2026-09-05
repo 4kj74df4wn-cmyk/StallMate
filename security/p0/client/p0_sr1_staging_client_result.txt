@@ -1,6 +1,5 @@
-StallMate P0 — SR1 STAGING CLIENT — automated flow verification OUTPUT (HOLD-1 CORRECTED)
-vs Auth emulator (9099) + RTDB emulator (9000) as staging proxy. Same wiring as the browser staging-app. Synthetic; no prod.
-Date: 2026-09-05T04:14:48Z
+StallMate P0 — SR1 STAGING CLIENT — automated flow verification OUTPUT (HOLD-2 CORRECTED)
+vs Auth emulator (9099) + RTDB emulator (9000). Synthetic; no prod. Date: 2026-09-05T04:31:05Z
 ============================================================
   PASS anonymous bootstrap = device identity (not owner)
   PASS anonymous not owner-authorized
@@ -11,7 +10,9 @@ Date: 2026-09-05T04:14:48Z
   PASS auth/offline: sale queued, amounts unchanged, not written
   PASS reconnect + replay writes queued sale (same opId)
   PASS exactly one sale at deterministic opId key
-  PASS same opId + changed amount => OPID_CONFLICT
+  PASS app flow: same opId + changed amount => opid_conflict surfaced
   PASS original financial record unchanged after conflict
+  PASS conflict quarantined (kept for audit, excluded from active replay)
+  PASS conflict NOT auto-retried on flush (original unchanged)
 
-=== SR1 CLIENT: 11/11 PASS, 0 FAIL ===
+=== SR1 CLIENT: 13/13 PASS, 0 FAIL ===
