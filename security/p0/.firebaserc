@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "staging": "stallmate-staging-2026-5f39f",
+    "default": "demo-stallmate-staging"
+  }
+}

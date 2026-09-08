@@ -1,0 +1,13 @@
+=== P0 POST-DEPLOY STAGING SMOKE (live callable; synthetic; no prod) ===
+  PASS valid owner + intended claim => ALLOW
+  PASS roomOwners == owner uid (owner-context read)
+  PASS replay => DENY
+  PASS wrong UID => DENY
+  PASS anonymous => DENY
+  PASS expired => DENY
+  PASS tampered => DENY
+  PASS already-bound => DENY
+  PASS owner unchanged after takeover attempt (owner-context read)
+  PASS cleanup (test users/roomOwners/nonces/audit) removed on staging (never production)
+
+=== POST-DEPLOY STAGING SMOKE: 10/10 PASS, 0 FAIL ===

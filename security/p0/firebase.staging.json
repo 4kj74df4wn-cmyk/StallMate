@@ -1,0 +1,5 @@
+{
+  "//": "P0 SR2 functions-only deploy config at security/p0 (project root contains functions/). SR3 rules use staging/firebase.staging.json.",
+  "database": { "rules": "staging/database.rules.B.json" },
+  "functions": { "source": "functions", "runtime": "nodejs20" }
+}
