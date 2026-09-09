@@ -1,0 +1,6 @@
+=== §E READ-PATH (RTDB emulator; synthetic) ===
+  PASS gate reads RTDB telemetry, both ready => PASS
+  PASS devB rebinds elsewhere => gate reads => FAIL
+  PASS unknown device in RTDB telemetry => flagged => FAIL
+
+=== §E READ-PATH: 3/3 PASS, 0 FAIL ===

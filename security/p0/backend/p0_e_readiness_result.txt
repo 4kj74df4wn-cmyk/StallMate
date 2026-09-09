@@ -1,0 +1,16 @@
+=== P0 §E READINESS GATE — VERIFICATION (synthetic; no prod) ===
+  PASS all active devices bound+seen+version => PASS (100%)
+  PASS one active device not bound to owner => FAIL
+  PASS certified device with no telemetry (silent) => FAIL
+  PASS device last seen > 7 days (not reclassified) => FAIL
+  PASS reclassified (retired) device removed from denominator => PASS
+  PASS appVersion below auth-capable build => FAIL
+  PASS unknown authed device in telemetry => FAIL + flagged for investigation
+  PASS no roomOwners binding => FAIL
+  PASS empty certified inventory => FAIL
+  PASS lastSeenAt exactly at 7-day window start => in window => PASS
+  PASS cmpVersion dotted-numeric correct
+  PASS 3/3 ready => PASS
+  PASS 2/3 ready => FAIL (100% rule, one silent)
+
+=== §E READINESS GATE: 13/13 PASS, 0 FAIL ===
