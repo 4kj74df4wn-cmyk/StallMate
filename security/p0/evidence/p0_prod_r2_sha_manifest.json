@@ -1,0 +1,36 @@
+{
+  "//": "StallMate P0 PRODUCTION R2 — SHA manifest (HOLD-1 CORRECTED, PREPARATION ONLY, NOTHING DEPLOYED). Repo branch security/p0-containment. sha256 shortened to first 16 hex; run sha256sum for full digest at deploy gate.",
+  "generatedFor": "PRODUCTION R2 + BILLING PREPARATION — HOLD-1 CORRECTED",
+  "generatedDate": "2026-09-10",
+  "productionProjectId": "stallmate-9caac",
+  "productionGoogleAccount": "pkorn1968@gmail.com",
+  "region": "asia-southeast1",
+  "deploymentStatus": "NOT_DEPLOYED",
+  "repoLayout": {
+    "security/p0/prod/firebase.production.json": { "sha256_16": "f31887ab3b3fb869", "role": "functions:bindOwner-only deploy config (source security/p0/functions; no db/hosting)" },
+    "security/p0/prod/.firebaserc": { "sha256_16": "67272a845e6e68b4", "role": "alias prod -> stallmate-9caac (source: firebaserc.production.json)" },
+    "security/p0/prod/ensure_prod_target_9caac.sh": { "sha256_16": "83baf0312647bfb2", "role": "exact-target guard: PASS iff 9caac; staging/emulator/unknown/empty FAIL" },
+    "security/p0/prod/verify_prod_functions_sha.sh": { "sha256_16": "25762bbdd757c397", "role": "reproducibility guard: handler+index must match reviewed SHA and be tracked" },
+    "security/p0/functions/index.js": { "sha256_16": "3e3cd662950f0b86", "sha256_full": "3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3", "role": "bindOwner callable (maxInstances1/concurrency1/timeout30/asia-southeast1); source: index.production.js" },
+    "security/p0/functions/p0_r2_owner_binding.js": { "sha256_16": "084f93cecc59b655", "sha256_full": "084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200", "role": "reviewed R2 handler — NOW TRACKED (HOLD-1 fix: not build-copied, not gitignored)" },
+    "security/p0/functions/package.json": { "sha256_16": "787a5c7eaa069e53", "role": "functions manifest node20 (source: p0_functions_package.json)" }
+  },
+  "evidenceArtifacts": {
+    "p0_prod_r2_billing_prep.md": { "role": "14-item HOLD-1 corrected review package" },
+    "p0_prod_r2_guard_results.txt": { "sha256_16": "75c7d8c4535d92a2", "role": "negative+positive guard test output (target guard + reproducibility guard)" },
+    "p0_prod_r2_postdeploy_smoke.js": { "sha256_16": "ca99dab8ee372fb2", "role": "synthetic post-deploy smoke + cleanup (never BBMANN)" },
+    "stallmate_v7.9.8.15-rc.1.html": { "sha256_16": "97ba2ffcfa5a08a9", "role": "production candidate client (NOT part of R2 deploy)" }
+  },
+  "costGuard": { "maxInstances": 1, "concurrency": 1, "timeoutSeconds": 30, "region": "asia-southeast1" },
+  "scope": { "functionsDeployed": ["bindOwner"], "excluded": ["redeemLicense", "database rules", "hosting", "client"] },
+  "deployCommand": "firebase deploy --only functions:bindOwner --project prod --config security/p0/prod/firebase.production.json",
+  "rollbackCommand": "firebase functions:delete bindOwner --region asia-southeast1 --project prod --force",
+  "rollbackNote": "R2 has NO prior bindOwner in production, so rollback = DELETE (return to no-function state), not redeploy of an older version.",
+  "untouchedConfirm": {
+    "origin_main": "83b2ca7 (frozen)",
+    "production_rtdb_rules": "unchanged (R2 deploys functions only)",
+    "production_client": "unchanged (candidate not deployed in R2)",
+    "baseline_v79813_v79814": "d806e672 (frozen)"
+  },
+  "supersedes": { "p0_93_billing_preflight.md": "stale 3 Sep draft (maxInstances 3-5, mentioned redeemLicense) — replaced by this manifest + p0_prod_r2_billing_prep.md (maxInstances 1, bindOwner only)" }
+}

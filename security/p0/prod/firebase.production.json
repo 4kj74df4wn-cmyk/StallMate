@@ -1,0 +1,8 @@
+{
+  "//": "StallMate P0 PRODUCTION deploy config (R2, PREPARED — NOT DEPLOYED). Repo: security/p0/prod/firebase.production.json. Use ONLY: firebase deploy --only functions:bindOwner --project prod --config security/p0/prod/firebase.production.json . functions source = security/p0/functions (contains index.js + p0_r2_owner_binding.js tracked). NO database, NO hosting, NO other functions here. Production Rules = separate later gate.",
+  "functions": {
+    "source": "security/p0/functions",
+    "runtime": "nodejs20",
+    "ignore": ["node_modules", ".git", "*.log"]
+  }
+}
