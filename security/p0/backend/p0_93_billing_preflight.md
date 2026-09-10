@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-09-10).** ล้าสมัย — ระบุ maxInstances 3–5 และ redeemLicense. ค่าที่อนุมัติจริง maxInstances=1/concurrency=1/timeout=30/asia-southeast1, รอบนี้เตรียมเฉพาะ bindOwner. ใช้ security/p0/evidence/p0_prod_r2_billing_prep.md + p0_prod_r2_sha_manifest.json แทน.
+
 # SECURITY P0 §9.3 — BILLING PREFLIGHT (DOCUMENT ONLY — Blaze NOT activated)
 
 **Authorization:** Room 00 — §9.3 PREFLIGHT ONLY. **Do NOT activate or upgrade Blaze.** No deploy, no live binding.

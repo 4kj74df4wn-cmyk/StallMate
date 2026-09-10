@@ -3,25 +3,28 @@
  * Runs ONLY after an authorized R2 Deploy Gate, against the deployed bindOwner callable
  * on stallmate-9caac, using a SYNTHETIC Auth user + SYNTHETIC room. NEVER touches BBMANN.
  *
- * B2 fixes (Room 00 HOLD-2): authenticates a real synthetic Firebase user, calls the real
- * httpsCallable, verifies real RTDB writes (roomOwners + ownerBindClaimsUsed), and performs
- * REAL cleanup in finally (deletes synthetic RTDB nodes + audit + the synthetic Auth user).
+ * Repo path: security/p0/evidence/p0_prod_r2_postdeploy_smoke.js
+ * Handler:   security/p0/functions/p0_r2_owner_binding.js  (sibling ../functions — B1 fix)
  *
- * Deps (install at gate time, functions dir or a scratch dir):
- *   npm i firebase-admin firebase
+ * B2 (HOLD-3): SMOKE result and CLEANUP result are separate. If RTDB cleanup OR the
+ * synthetic Auth-user deletion fails, the process exits NON-ZERO (cleanup errors are NOT
+ * swallowed) and prints redacted synthetic identifiers for a manual sweep.
+ *
+ * Deps at gate time (reproducible): run  `npm ci`  in security/p0/functions using the
+ * committed package-lock.json (do NOT `npm i` — that can drift dependencies).
  * Env (never printed):
  *   GCLOUD_PROJECT=stallmate-9caac
- *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/prod-sa-key.json   (downloaded at gate, deleted after)
- *   OWNER_BIND_SECRET=<value>                                  (to forge a valid signed claim)
+ *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/prod-sa-key.json  (downloaded at gate, deleted after)
+ *   OWNER_BIND_SECRET=<value>                                 (to forge a valid signed claim)
  *   RTDB_URL=https://<db>.asia-southeast1.firebasedatabase.app
- *   FIREBASE_API_KEY=<prod web api key>                        (public web key, not a secret)
+ *   FIREBASE_API_KEY=<prod web api key>                       (public web key, not a secret)
  *
- * Uses signClaim() from the SAME reviewed handler so the claim format always matches backend.
+ * Exit codes: 0 = SMOKE PASS + CLEANUP PASS · 1 = SMOKE FAIL · 4 = SMOKE PASS but CLEANUP FAIL · 3 = abort.
  */
 'use strict';
 const crypto = require('crypto');
 const admin  = require('firebase-admin');
-const { signClaim } = require('./p0_r2_owner_binding.js'); // tracked sibling; identical claim format
+const { signClaim } = require('../functions/p0_r2_owner_binding.js'); // B1: correct cross-folder path
 
 const PROJECT = process.env.GCLOUD_PROJECT || '';
 const SECRET  = process.env.OWNER_BIND_SECRET || '';
@@ -40,70 +43,78 @@ if (/BBMANN/i.test(ROOM)) abort('synthetic room collided with BBMANN — refuse'
 const UID   = 'smoke-' + crypto.randomBytes(4).toString('hex');
 const nonce = crypto.randomBytes(16).toString('hex');
 const exp   = Date.now() + 60 * 1000;
+const noncePrefix = nonce.slice(0, 6) + '…'; // redacted for manual-sweep reporting
 
 admin.initializeApp({ credential: admin.credential.applicationDefault(), databaseURL: RTDB });
 const adb = admin.database();
-const claimIdShort = crypto.createHash('sha256').update(String(nonce)).digest('hex').slice(0, 16);
 
-// firebase client (modular v9)
 const { initializeApp } = require('firebase/app');
 const { getAuth, signInWithCustomToken, signOut } = require('firebase/auth');
 const { getFunctions, httpsCallable } = require('firebase/functions');
 
-let clientApp, results = {};
+let clientApp = null;
+let smokePass = false;
+const results = {};
+
 (async () => {
   try {
-    // 1) synthetic Auth user (custom token => provider 'custom', not anonymous)
     const customToken = await admin.auth().createCustomToken(UID);
     clientApp = initializeApp({ apiKey: APIKEY, projectId: PROJECT, databaseURL: RTDB, authDomain: PROJECT + '.firebaseapp.com' });
     const auth = getAuth(clientApp);
     const cred = await signInWithCustomToken(auth, customToken);
     if (cred.user.uid !== UID) throw new Error('sign-in uid mismatch');
 
-    // 2) valid signed claim (exact backend format via signClaim)
     const claimToken = signClaim({ roomCode: ROOM, intendedUid: UID, nonce, exp }, SECRET);
-
-    // 3) call the REAL deployed callable
     const fns  = getFunctions(clientApp, REGION);
     const call = httpsCallable(fns, 'bindOwner');
+
     const first = await call({ roomCode: ROOM, claimToken });
     results.first = first.data;
     const okFirst = first.data && first.data.ok === true && first.data.roomCode === ROOM && first.data.uid === UID;
 
-    // 4) verify REAL RTDB writes
     const ownerSnap = await adb.ref('roomOwners/' + ROOM).once('value');
     const usedSnap  = await adb.ref('ownerBindClaimsUsed/' + nonce).once('value');
     const rtdbOk = ownerSnap.val() === UID && usedSnap.exists();
-    results.rtdb = { roomOwner: ownerSnap.val(), nonceUsed: usedSnap.exists() };
+    results.rtdb = { roomOwnerMatches: ownerSnap.val() === UID, nonceRecorded: usedSnap.exists() };
 
-    // 5) replay must be rejected (single-use nonce)
     let replayRejected = false;
     try { await call({ roomCode: ROOM, claimToken }); }
-    catch (e) { replayRejected = /replayed|already/i.test(e && (e.message || e.code) || ''); results.replayErr = e && (e.message || e.code); }
+    catch (e) { replayRejected = /replayed|already/i.test((e && (e.message || e.code)) || ''); results.replayErr = e && (e.message || e.code); }
     results.replayRejected = replayRejected;
 
-    const pass = okFirst && rtdbOk && replayRejected;
-    results.pass = pass;
-    console.log(JSON.stringify({ room: ROOM, uid: UID, claimIdShort, ...results }, null, 2));
-    process.exitCode = pass ? 0 : 1;
+    smokePass = !!(okFirst && rtdbOk && replayRejected);
   } catch (e) {
-    console.error('SMOKE ERROR:', e && (e.message || String(e)));
-    process.exitCode = 1;
+    results.smokeError = e && (e.message || String(e));
+    smokePass = false;
   } finally {
-    // 6) REAL cleanup — remove every synthetic node + audit + the synthetic Auth user
+    // ---- CLEANUP (separate pass/fail; errors NOT swallowed) ----
+    const problems = [];
+    try { await adb.ref('roomOwners/' + ROOM).remove(); }
+    catch (e) { problems.push('roomOwners: ' + (e && e.message)); }
+    try { await adb.ref('ownerBindClaimsUsed/' + nonce).remove(); }
+    catch (e) { problems.push('ownerBindClaimsUsed: ' + (e && e.message)); }
     try {
-      await adb.ref('roomOwners/' + ROOM).remove();
-      await adb.ref('ownerBindClaimsUsed/' + nonce).remove();
       const auditSnap = await adb.ref('ownerBindAudit').orderByChild('roomCode').equalTo(ROOM).once('value');
       const updates = {};
       auditSnap.forEach(ch => { updates['ownerBindAudit/' + ch.key] = null; });
       if (Object.keys(updates).length) await adb.ref().update(updates);
-      await admin.auth().deleteUser(UID).catch(() => {});
-      if (clientApp) { try { await signOut(getAuth(clientApp)); } catch (_) {} }
-      console.log('CLEANUP OK: removed roomOwners/' + ROOM + ', ownerBindClaimsUsed/' + nonce + ', synthetic audit, synthetic user ' + UID + ' (BBMANN untouched)');
-    } catch (ce) {
-      console.error('CLEANUP WARNING (manual sweep may be needed):', ce && (ce.message || String(ce)), '| synthetic room=' + ROOM + ' nonce=' + nonce + ' uid=' + UID);
+    } catch (e) { problems.push('ownerBindAudit: ' + (e && e.message)); }
+    try { await admin.auth().deleteUser(UID); }               // B2: NOT swallowed
+    catch (e) { problems.push('deleteUser: ' + (e && e.message)); }
+    if (clientApp) { try { await signOut(getAuth(clientApp)); } catch (_) {} }
+
+    const cleanupPass = problems.length === 0;
+
+    console.log(JSON.stringify({ room: ROOM, uid: UID, noncePrefix, ...results }, null, 2));
+    console.log('SMOKE '  + (smokePass  ? 'PASS' : 'FAIL'));
+    console.log('CLEANUP ' + (cleanupPass ? 'PASS' : 'FAIL'));
+    if (!cleanupPass) {
+      console.error('CLEANUP FAIL — manual sweep needed for (redacted): room=' + ROOM +
+        ' noncePrefix=' + noncePrefix + ' uid=' + UID);
+      console.error('cleanup problems: ' + problems.join(' | '));
     }
-    process.exit(process.exitCode || 0);
+    // exit: 0 only if BOTH pass; cleanup failure => non-zero even when smoke passed
+    const code = (smokePass && cleanupPass) ? 0 : (smokePass ? 4 : 1);
+    process.exit(code);
   }
 })();

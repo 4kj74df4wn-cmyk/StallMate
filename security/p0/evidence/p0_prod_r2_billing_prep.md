@@ -73,20 +73,26 @@ firebase functions:delete bindOwner --region asia-southeast1 --project stallmate
 - staging Blaze อยู่คนละบัญชี (feelgood2511, billing account redacted)
 - หลักฐานภาพจริง (billing account id ของ 9caac ≠ staging) เก็บ *ตอนเปิด Blaze production* → `p0_prod_billing_isolation_evidence.md` (ขั้นถัดไป)
 
-## 7. Post-deploy smoke — executable end-to-end (B2 fix)
+## 7. Post-deploy smoke — executable end-to-end (B1+B2 fix)
 `security/p0/evidence/p0_prod_r2_postdeploy_smoke.js`:
+- **import ข้ามโฟลเดอร์ถูกต้อง (B1):** `require('../functions/p0_r2_owner_binding.js')` (smoke อยู่ evidence/, handler อยู่ functions/)
 - authenticate **synthetic Firebase user จริง** (custom token → provider `custom`, ไม่ anonymous)
 - forge claim ด้วย `signClaim()` จาก handler ตัวจริง (format ตรง backend เป๊ะ)
 - เรียก **httpsCallable('bindOwner') จริง** (region asia-southeast1) → ตรวจ `data.ok/roomCode/uid`
 - ตรวจ **RTDB จริง**: `roomOwners/<ROOM>===uid` และ `ownerBindClaimsUsed/<nonce>` exists (ตรงกับที่ backend เขียนจริง)
 - replay → ต้องถูกปฏิเสธ (`replayed`)
-- **cleanup จริงใน `finally`**: ลบ `roomOwners/<ROOM>`, `ownerBindClaimsUsed/<nonce>`, `ownerBindAudit` ของ ROOM, และ `admin.auth().deleteUser(uid)`
+- **cleanup แยกผลจาก smoke (B2):** รายงาน `SMOKE PASS/FAIL` และ `CLEANUP PASS/FAIL` แยกกัน · ถ้า RTDB cleanup หรือ `deleteUser()` ล้มเหลว → **exit non-zero** (ไม่กลืน error) · เมื่อ cleanup ล้มเหลว print synthetic identifiers แบบ redacted (`room`, `noncePrefix`, `uid`) สำหรับ manual sweep
+- exit codes: `0`=SMOKE+CLEANUP PASS · `1`=SMOKE FAIL · `4`=SMOKE PASS แต่ CLEANUP FAIL · `3`=abort
 - room = `SMOKEPROD*` (abort ถ้าชน BBMANN) · abort ถ้า project≠stallmate-9caac · SA key + secret อ่านจาก env ไม่ print
-- deps ตอน gate: `npm i firebase-admin firebase`
+- **deps ตอน gate (reproducible):** `cd functions && npm ci` จาก committed `package-lock.json` — **ห้าม `npm i`** (กัน dependency drift)
 
-## 8. SHA manifest + negative guard results
-- `security/p0/evidence/p0_prod_r2_sha_manifest.json`
-- `security/p0/evidence/p0_prod_r2_guard_results.txt` — target guard 1 PASS/6 FAIL · reproducibility guard 1 PASS/2 FAIL (รันแบบ canonical `cd security/p0`)
+## 8. SHA manifest + full-artifact-set guard (B4 fix)
+- `security/p0/evidence/p0_prod_r2_sha_manifest.json` — full sha256 ของ deploy artifact set ทั้ง 5 ไฟล์
+- `verify_prod_functions_sha.sh` ตอนนี้คุม **ครบชุด deploy artifact**: `firebase.production.json`, `functions/index.js`, `functions/p0_r2_owner_binding.js`, `functions/package.json`, `functions/package-lock.json` (fail-closed ทุกไฟล์)
+  - `firebase.production.json` = `3a041f54e73f9d69…c71f`
+  - `functions/package.json` = `787a5c7eaa069e53…207c`
+  - `functions/package-lock.json` = `e03ede776e099310…4323`
+- `security/p0/evidence/p0_prod_r2_guard_results.txt` — target guard 1 PASS/6 FAIL · reproducibility guard: order-proof (config→package ผ่าน, gate ที่ lock) + negatives (tampered index / tampered config / missing handler ทั้งหมด BLOCKED). Full 5/5 PASS ยืนยันบนเครื่อง June ด้วย committed lockfile
 
 ## 9. Stop conditions (abort ทันที)
 target≠stallmate-9caac · account≠pkorn1968 · 9caac ยังไม่เปิด Blaze/billing ชนกับ staging · secret ไม่ผูก/version ผิด · region≠asia-southeast1 · SHA ไม่ตรง manifest · guard exit≠0
@@ -97,8 +103,8 @@ target≠stallmate-9caac · account≠pkorn1968 · 9caac ยังไม่เ�
 - production RTDB Rules — ไม่ถูกแตะ (R2 deploy functions เท่านั้น)
 - production client — candidate `v7.9.8.15-rc.1` ยังไม่ deploy
 
-## เอกสารเก่าที่ถูกแทน
-`p0_93_billing_preflight.md` (3 ก.ย., ระบุ maxInstances 3–5 + redeemLicense) = **SUPERSEDED** (แก้หัวเอกสารจริงในไฟล์นั้นแล้ว, commit เข้า evidence). รอบนี้ scope = **`bindOwner` เท่านั้น**, ไม่มี `redeemLicense`.
+## เอกสารเก่าที่ถูกแทน (B3 fix — single source of truth)
+`p0_93_billing_preflight.md` (3 ก.ย., ระบุ maxInstances 3–5 + redeemLicense) = **SUPERSEDED**. แก้ให้เหลือ **ตำแหน่งเดียว**: mark หัวเอกสารจริงที่ **`security/p0/backend/p0_93_billing_preflight.md`** (ต้นฉบับเดิม) เป็น SUPERSEDED · **ลบสำเนาซ้ำใน `evidence/`** ทิ้ง (ไม่สร้างสำเนาใหม่แล้วปล่อยต้นฉบับเก่าใช้งานได้). รอบนี้ scope = **`bindOwner` เท่านั้น**, ไม่มี `redeemLicense`.
 
 ---
 

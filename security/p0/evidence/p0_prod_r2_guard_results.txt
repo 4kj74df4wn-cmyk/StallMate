@@ -1,9 +1,8 @@
-# P0 PRODUCTION R2 — GUARD RESULTS (HOLD-2 canonical invocation)
+# P0 PRODUCTION R2 — GUARD RESULTS (HOLD-3 canonical, full artifact-set guard)
 # date: 2026-09-10 · sandbox · no firebase CLI · no network · no mutation
-# canonical: run from  security/p0  ;  config firebase.production.json (source=functions)
+# canonical: run from security/p0 ; config firebase.production.json (source=functions)
 
-## invoked as Room 00 canonical form:  cd security/p0 && ./prod/<guard> ...
-## A) exact-target guard  (./prod/ensure_prod_target_9caac.sh <id>)
+## A) exact-target guard  ./prod/ensure_prod_target_9caac.sh <id>
 [POSITIVE stallmate-9caac] arg='stallmate-9caac' => EXIT0  PROD-GUARD PASS: target = stallmate-9caac
 [NEG staging id] arg='stallmate-staging-2026-5f39f' => BLOCKED(exit 2)  PROD-GUARD FAIL: staging id rejected: stallmate-staging-2026-5f39f
 [NEG staging word] arg='my-staging-proj' => BLOCKED(exit 2)  PROD-GUARD FAIL: staging id rejected: my-staging-proj
@@ -12,11 +11,19 @@
 [NEG unknown project] arg='grab-996cb' => BLOCKED(exit 2)  PROD-GUARD FAIL: target 'grab-996cb' != stallmate-9caac (unknown/unexpected)
 [NEG empty (fail-closed)] arg='' => BLOCKED(exit 2)  PROD-GUARD FAIL: no target arg and .firebaserc not found (/tmp/p0can/security/p0/prod/.firebaserc)
 
-## B) reproducibility guard  (./prod/verify_prod_functions_sha.sh functions)
-[POSITIVE tracked+matching] => PASS  FN-SHA GUARD PASS: handler+index match reviewed bytes; import is local tracked file
-[NEG tampered handler] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: handler SHA 1b00fbb265ecb34ae957adf73dc20ad047da134b967c11d86d041655d68d55a0 != reviewed 084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
-[NEG handler missing/gitignored] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: handler not tracked in functions (Room 00 HOLD-1: no build-copy/gitignore)
+## B) reproducibility guard  ./prod/verify_prod_functions_sha.sh functions  (checks 5 files)
+# NOTE: this sandbox has the 4 real reviewed files (config/index/handler/package) but only a
+#       PLACEHOLDER package-lock.json. The run below therefore PASSES config->package and STOPS
+#       exactly at the lock gate — proving all 4 prior files matched + the lock gate is active.
+#       On June's Mac the committed package-lock.json (e03ede776e099310...) makes it full PASS.
+[order-proof: 4 real + placeholder lock] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: package-lock.json SHA 1ce1dc536378206ab7163ad8f0c1b80544edbb08d1c23f575287531dfe78f6c0 != reviewed e03ede776e09931007fc7494b62b09d7da2ae6990e9d43b62240f06626534323
+[NEG tampered index.js] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: index.js SHA f0f5bb626330386cacaac3d80d1ba7026ced456943dd7508efc382143b054138 != reviewed 3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3
+[NEG tampered config] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: firebase.production.json SHA e4be1f82427cb7449885c3614c8c006405715d4a90e749816d3b7a4e87371d44 != reviewed 3a041f54e73f9d694370f9629d4159edae6d29888f602afd68175f6813b8c71f
+[NEG handler missing/gitignored] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: handler not tracked in functions (HOLD-1: no build-copy/gitignore)
 
-## Reviewed source SHAs (sha256 full)
-index.js               = 3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3
-p0_r2_owner_binding.js = 084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
+## Reviewed full SHAs (sha256) — deploy artifact set
+firebase.production.json     = 3a041f54e73f9d694370f9629d4159edae6d29888f602afd68175f6813b8c71f
+functions/index.js           = 3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3
+functions/p0_r2_owner_binding.js = 084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
+functions/package.json       = 787a5c7eaa069e53af6dc3ca3128116c19f33a1d5371e2b35afc9109f84b207c
+functions/package-lock.json  = e03ede776e09931007fc7494b62b09d7da2ae6990e9d43b62240f06626534323

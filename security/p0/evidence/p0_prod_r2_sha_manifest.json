@@ -1,6 +1,6 @@
 {
-  "//": "StallMate P0 PRODUCTION R2 — SHA manifest (HOLD-2 CORRECTED, CANONICAL, PREPARATION ONLY, NOTHING DEPLOYED). Branch security/p0-containment. sha256 shortened to first 16 hex; run sha256sum for full digest at deploy gate.",
-  "generatedFor": "PRODUCTION R2 + BILLING PREPARATION — HOLD-2 CORRECTED",
+  "//": "StallMate P0 PRODUCTION R2 — SHA manifest (HOLD-3 CORRECTED, CANONICAL, PREPARATION ONLY, NOTHING DEPLOYED). Branch security/p0-containment. Full sha256 where the guard enforces it.",
+  "generatedFor": "PRODUCTION R2 + BILLING PREPARATION — HOLD-3 CORRECTED",
   "generatedDate": "2026-09-10",
   "productionProjectId": "stallmate-9caac",
   "productionGoogleAccount": "pkorn1968@gmail.com",
@@ -12,38 +12,39 @@
       "./prod/ensure_prod_target_9caac.sh stallmate-9caac",
       "./prod/verify_prod_functions_sha.sh functions"
     ],
+    "installDeps": "cd functions && npm ci   # from committed package-lock.json (NOT npm i)",
     "deploy": "firebase deploy --only functions:bindOwner --project stallmate-9caac --config firebase.production.json",
-    "rollback": "firebase functions:delete bindOwner --region asia-southeast1 --project stallmate-9caac --force",
-    "note": "B1 fix: config at security/p0 (source 'functions'), exact project id (no alias 'prod'), guard+config+--project share one context."
+    "rollback": "firebase functions:delete bindOwner --region asia-southeast1 --project stallmate-9caac --force"
   },
-  "repoLayout": {
-    "security/p0/firebase.production.json": { "sha256_16": "3a041f54e73f9d69", "role": "canonical deploy config; source 'functions'; no db/hosting" },
-    "security/p0/prod/ensure_prod_target_9caac.sh": { "sha256_16": "83baf0312647bfb2", "role": "exact-target guard: PASS iff stallmate-9caac; staging/emulator/unknown/empty FAIL" },
-    "security/p0/prod/verify_prod_functions_sha.sh": { "sha256_16": "25762bbdd757c397", "role": "reproducibility guard: handler+index must match reviewed SHA and be tracked" },
-    "security/p0/functions/index.js": { "sha256_16": "3e3cd662950f0b86", "sha256_full": "3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3", "role": "bindOwner callable; maxInstances1/concurrency1/timeout30/asia-southeast1" },
-    "security/p0/functions/p0_r2_owner_binding.js": { "sha256_16": "084f93cecc59b655", "sha256_full": "084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200", "role": "reviewed R2 handler — TRACKED" },
-    "security/p0/functions/package.json": { "sha256_16": "787a5c7eaa069e53", "role": "functions manifest node20" }
+  "deployArtifactSet_fullSha256": {
+    "security/p0/firebase.production.json": "3a041f54e73f9d694370f9629d4159edae6d29888f602afd68175f6813b8c71f",
+    "security/p0/functions/index.js": "3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3",
+    "security/p0/functions/p0_r2_owner_binding.js": "084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200",
+    "security/p0/functions/package.json": "787a5c7eaa069e53af6dc3ca3128116c19f33a1d5371e2b35afc9109f84b207c",
+    "security/p0/functions/package-lock.json": "e03ede776e09931007fc7494b62b09d7da2ae6990e9d43b62240f06626534323"
   },
-  "evidenceArtifacts": {
-    "security/p0/evidence/p0_prod_r2_billing_prep.md": { "role": "single canonical runbook (HOLD-2 corrected; no addendum conflict)" },
-    "security/p0/evidence/p0_prod_r2_postdeploy_smoke.js": { "sha256_16": "e6ad54bf4ec9c64d", "role": "B2 executable end-to-end smoke: synthetic Auth user + real callable + real RTDB check + real cleanup in finally" },
-    "security/p0/evidence/p0_prod_r2_guard_results.txt": { "sha256_16": "f6116956fbff70ce", "role": "canonical-invocation guard results (target 1 PASS/6 FAIL; reproducibility 1 PASS/2 FAIL)" },
-    "security/p0/evidence/p0_prod_r2_sha_manifest.json": { "role": "this manifest" },
-    "security/p0/evidence/p0_93_billing_preflight.md": { "role": "SUPERSEDED stale 3-Sep doc (header marked SUPERSEDED), committed so repo matches the claim" }
+  "guardsAndEvidence": {
+    "security/p0/prod/ensure_prod_target_9caac.sh": { "sha256_16": "83baf0312647bfb2", "role": "exact-target guard (9caac only)" },
+    "security/p0/prod/verify_prod_functions_sha.sh": { "sha256_16": "a761253c64f95e03", "role": "B4: full-artifact-set reproducibility guard (config+index+handler+package+lock, fail-closed)" },
+    "security/p0/evidence/p0_prod_r2_postdeploy_smoke.js": { "sha256_16": "07584e163fd7e5ba", "role": "B1/B2: e2e smoke; correct ../functions import; cleanup failure => non-zero; SMOKE vs CLEANUP reported separately; deleteUser errors not swallowed" },
+    "security/p0/evidence/p0_prod_r2_guard_results.txt": { "sha256_16": "97b52cf228ea4444", "role": "canonical guard run (target 1 PASS/6 FAIL; reproducibility order-proof + 3 negatives)" },
+    "security/p0/evidence/p0_prod_r2_billing_prep.md": { "role": "single canonical runbook" },
+    "security/p0/evidence/p0_prod_r2_sha_manifest.json": { "role": "this manifest" }
+  },
+  "preflightSingleSourceOfTruth": {
+    "location": "security/p0/backend/p0_93_billing_preflight.md",
+    "state": "SUPERSEDED header added to the ORIGINAL in backend/ (B3 fix); the duplicate copy under evidence/ is removed. One marked file, one location.",
+    "reason": "stale 3-Sep doc (maxInstances 3-5, mentioned redeemLicense); this round scope = bindOwner only"
   },
   "costControl": {
     "wording": "Budget Alert is notification only; maxInstances=1 is a concurrency/cost-risk guard, NOT a hard monetary cap. No hard monetary cap exists in this configuration.",
     "maxInstances": 1, "concurrency": 1, "timeoutSeconds": 30, "region": "asia-southeast1"
   },
   "scope": { "functionsDeployed": ["bindOwner"], "excluded": ["redeemLicense", "database rules", "hosting", "client"] },
-  "baselineSha": {
-    "v7.9.8.13": "523df939 (frozen, unchanged)",
-    "v7.9.8.14": "d806e672 (frozen, unchanged)"
-  },
+  "baselineSha": { "v7.9.8.13": "523df939 (frozen, unchanged)", "v7.9.8.14": "d806e672 (frozen, unchanged)" },
   "untouchedConfirm": {
     "origin_main": "83b2ca7 (frozen)",
     "production_rtdb_rules": "unchanged (functions-only deploy)",
     "production_client": "unchanged (candidate not deployed in R2)"
-  },
-  "supersededPriorManifest": "HOLD-1 version referenced firebase.production.json under security/p0/prod and a fake-HTTP smoke; both replaced here."
+  }
 }
