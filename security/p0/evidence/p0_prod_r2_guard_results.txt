@@ -1,20 +1,22 @@
-# P0 PRODUCTION R2 — GUARD NEGATIVE/POSITIVE TEST RESULTS
-# date: 2026-09-10 (sandbox, no firebase CLI, no network, no mutation)
+# P0 PRODUCTION R2 — GUARD RESULTS (HOLD-2 canonical invocation)
+# date: 2026-09-10 · sandbox · no firebase CLI · no network · no mutation
+# canonical: run from  security/p0  ;  config firebase.production.json (source=functions)
 
-## A) ensure_prod_target_9caac.sh  (exact-target guard)
+## invoked as Room 00 canonical form:  cd security/p0 && ./prod/<guard> ...
+## A) exact-target guard  (./prod/ensure_prod_target_9caac.sh <id>)
 [POSITIVE stallmate-9caac] arg='stallmate-9caac' => EXIT0  PROD-GUARD PASS: target = stallmate-9caac
 [NEG staging id] arg='stallmate-staging-2026-5f39f' => BLOCKED(exit 2)  PROD-GUARD FAIL: staging id rejected: stallmate-staging-2026-5f39f
 [NEG staging word] arg='my-staging-proj' => BLOCKED(exit 2)  PROD-GUARD FAIL: staging id rejected: my-staging-proj
 [NEG emulator demo-*] arg='demo-stallmate' => BLOCKED(exit 2)  PROD-GUARD FAIL: emulator/local id rejected: demo-stallmate
 [NEG localhost] arg='localhost:9000' => BLOCKED(exit 2)  PROD-GUARD FAIL: emulator/local id rejected: localhost:9000
 [NEG unknown project] arg='grab-996cb' => BLOCKED(exit 2)  PROD-GUARD FAIL: target 'grab-996cb' != stallmate-9caac (unknown/unexpected)
-[NEG empty (no .firebaserc)] arg='' => BLOCKED(exit 2)  PROD-GUARD FAIL: no target arg and .firebaserc not found (/sessions/practical-peaceful-clarke/mnt/My Drive--Claude_StallMate HQ/02_TEST_EVIDENCE/.firebaserc)
+[NEG empty (fail-closed)] arg='' => BLOCKED(exit 2)  PROD-GUARD FAIL: no target arg and .firebaserc not found (/tmp/p0can/security/p0/prod/.firebaserc)
 
-## B) verify_prod_functions_sha.sh  (deploy reproducibility guard)
+## B) reproducibility guard  (./prod/verify_prod_functions_sha.sh functions)
 [POSITIVE tracked+matching] => PASS  FN-SHA GUARD PASS: handler+index match reviewed bytes; import is local tracked file
-[NEG tampered handler] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: handler SHA 9b0a3a6e1e6d3b7e02f1a39a55dfd2dede7a8e890c0b6d546d961f8d329ffd6e != reviewed 084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
-[NEG handler untracked/gitignored] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: handler not tracked in security/p0/functions (Room 00 HOLD-1: no build-copy/gitignore)
+[NEG tampered handler] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: handler SHA 1b00fbb265ecb34ae957adf73dc20ad047da134b967c11d86d041655d68d55a0 != reviewed 084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
+[NEG handler missing/gitignored] => BLOCKED(exit 3)  FN-SHA GUARD FAIL: handler not tracked in functions (Room 00 HOLD-1: no build-copy/gitignore)
 
-## Reviewed SHAs (sha256)
-index.js (production)      = 3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3
-p0_r2_owner_binding.js     = 084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
+## Reviewed source SHAs (sha256 full)
+index.js               = 3e3cd662950f0b86c5be4569f3030bd577a00ef1ec92ecb3473d7fdb744cd4c3
+p0_r2_owner_binding.js = 084f93cecc59b655661f2661b95b6d197505e6019f17dc90831c9b2361b7a200
