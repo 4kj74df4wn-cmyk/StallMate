@@ -1,36 +1,40 @@
-# P0 — v7.9.9 PRODUCTION CLIENT CANDIDATE — BUILD + VERIFY EVIDENCE
+# P0 — v7.9.9 PRODUCTION CLIENT CANDIDATE — BUILD + VERIFY EVIDENCE (HARDENED FALLBACK)
 
-**วันที่:** 10 ก.ย. 2026 · **Room 00:** BUILD PRODUCTION CLIENT CANDIDATE v7.9.9 — AUTHORIZED (build+verify only)
+**วันที่:** 10 ก.ย. 2026 · **Room 00:** CODE-PACKAGE REVIEW PASS → hardened fallback + Full-Chromium smoke prep
 **ห้าม:** production deploy · Blaze/billing · Function deploy · live binding · Rules deploy · merge main · M3
-**สถานะ:** `READY_FOR_ROOM00_CODE_REVIEW`
+**สถานะ:** `READY_FOR_ROOM00_CODE_REVIEW` (hardened) + Full-Chromium smoke harness พร้อมให้ June/CI รัน
 
 ## Baseline → candidate
-- Baseline: `stallmate_v7.9.8.14.html` SHA `d806e672…` (frozen, **ไม่แตะ** — verify ยืนยัน unchanged)
-- Candidate: **`stallmate_v7.9.9.html`** SHA `fe38853a31d9189cf6624ccaefd42f3aef7d10a0e5a71d16d73bb1a7378ffc1b`
-- Build = additive: +15,001 bytes (766,965) — main app script + 11 protected fns **byte-identical**; เพิ่ม (1) `firebase-auth-compat.js` SDK tag (2) `APP_VERSION='v7.9.9'` (3) **auth layer** เป็น `<script>` block แยกก่อน `</body>` · reproducible ผ่าน `p0_v799_build_candidate.js`
+- Baseline: `stallmate_v7.9.8.14.html` SHA `d806e672…` (frozen, verify ยืนยัน unchanged)
+- **Hardened candidate:** `stallmate_v7.9.9_hardened.html` (= v7.9.9) SHA **`58deedc362c470320e126e2c82dcd943221d54968f1064a7374f0974b849db4b`**
+  (ไฟล์ชื่อ `stallmate_v7.9.9.html` เดิม = pre-hardening `fe38853a`; ตัว hardened ใช้ชื่อ _hardened เพราะ Drive ล็อกไฟล์เดิมชั่วคราว — June คัดตัว _hardened ทับเป็น v7.9.9)
+- Build = additive จาก .14: main app + 11 protected fns **byte-identical** · เพิ่ม firebase-auth-compat + APP_VERSION 7.9.9 + auth layer (`<script>` block แยก)
 
-## Included changes (Room 00 items)
-- **Production config guard:** allowlist `stallmate-9caac` เท่านั้น; ปฏิเสธ staging/emulator/unknown (banner หยุด, ไม่เปิด auth)
-- **R1 controller** (จาก verified `stallmate_auth.js`, R1 24/24 · SR1 16/16): anonymous bootstrap (device identity) + owner sign-in (permanent) + `isOwnerAuthorized` (อ่าน `roomOwners/BBMANN`, identity≠authority, re-verify ทุก write)
-- **Deterministic writer:** `salesRecords/{opId}` transaction create-only + canonical-equal + **OPID_CONFLICT quarantine/no-auto-retry**
-- **guarded override `updateSaleInFirebase`:** owner-authed → deterministic guarded write; pre-binding → fallback ของเดิม (backward-compatible เพราะ rules ยัง permissive จน production R3)
-- **§E telemetry:** `readiness/audit/{deviceId}` = {deviceId, boundOwnerUid, authProvider, appVersion:'7.9.9', lastSeenAt} — no PII/sales
-- **No direct `roomOwners` write** (binding = callable `bindOwner`, ต้องมี production Function ก่อน — gate แยก) · **ไม่ฝัง secret**
-- build/version banner + deviceId display (กันสลับผิดเครื่อง/รุ่น)
+## HARDENED backward-compatible fallback (ปิด 7 เงื่อนไข Room 00 เด็ดขาด)
+1. **fallback เฉพาะ PRE_BINDING ที่ยืนยันแล้ว** — legacy fires เฉพาะเมื่อ `roomOwners/BBMANN` ยืนยันว่า**ไม่มี** (bound===false) เท่านั้น
+2. **auth/network/callable error ไม่เปิด legacy** — indeterminate (อ่าน binding ไม่ได้/ยังไม่รู้) → **queue** ผ่าน guardedSaleWrite ไม่ silent legacy
+3. **bound → latch off ถาวร** — พอเคยเห็น binding (roomOwners exists) ครั้งเดียว → `__fallbackLatchOff=true` ตลอด session, legacy ปิดถาวร (ไม่ re-open แม้ sign-out)
+4. **ทุก fallback มี telemetry นับได้** — `fallbackCount` + `lastFallbackAt` เขียน `readiness/audit/{deviceId}`
+5. **หลัง Rules B legacy bypass ไม่ได้** — bound ⇒ latch off (Rules B ต้องมี binding) + ถึง fire ก็โดน Rules B deny
+6. **un-writable sale → queue** — guardedSaleWrite persist snapshot immutable ก่อน network, dedup by opId, quarantine conflict → ยอดไม่เปลี่ยน ไม่หาย ไม่ซ้ำ
+7. **ทุก sale path เข้า guarded writer** — override ทั้ง `updateSaleInFirebase` (real-time) และ `pushToFirebase('sales'|'all')` (import/restore) → ไม่มี whole-array bypass
 
 ## Verify (sandbox, node v22)
-- **syntax:** OK (2 script blocks — main + auth layer, ทั้งคู่ parse ผ่าน)
-- **financial regression M2:** **209/209 PASS** · **M0/M1:** **95/95 PASS** (ฟังก์ชันการเงินไม่ regress)
-- **protected-scope:** OK — 11 protected fns (`computeBillStats/isValidOrderId/billCountLabel/avgPerOrderLabel/sessionBillCountLabel/renderStatKPI/collectBackupData/applyBackupData/backup/restore/clearAll`) byte-identical vs snapshot
-- **frozen `.14`:** `d806e672…` **unchanged** · **origin/main:** ไม่ขยับ (candidate เป็นไฟล์ใหม่บน branch, ยังไม่ push)
-- **integration smoke (jsdom + mock firebase/RTDB, synthetic):** **8/8 PASS** — config guard accept-9caac/refuse-staging · controller exposed · anon bootstrap · §E telemetry v7.9.9 · owner authorized after bind · deterministic guarded write · same-opId+changed-amount → original unchanged (OPID_CONFLICT)
-  - offline/reconnect/idempotency: R1 `guardedSaleWrite`/`flushPendingSales`/OPID_CONFLICT = โค้ดเดียวกับ R1 24/24 + SR1 16/16 + SR3 18/18 (inlined)
-- **หมายเหตุตรงไปตรงมา:** full-Chromium click-through บนเครื่องจริง (โหลด candidate จาก CDN firebase + emulator) เป็นขั้น canary/real-device ของ June/CI ต่อไป (ตาม prep §6) — sandbox arm64 รัน Chromium เต็มไม่ได้; รอบนี้พิสูจน์ integration ผ่าน jsdom + mock (เหมือนแนวทาง SR1)
+- syntax OK (2 blocks) · **M2 209/209** · **M0/M1 95/95** · **protected-scope OK (11 fns)** · frozen .14 `d806e672` unchanged · origin/main ไม่ขยับ
+- **HARDENED integration smoke (jsdom + mock firebase/RTDB, synthetic): 14/14 PASS** — config guard accept/refuse · anon bootstrap · §E telemetry v7.9.9 · **PRE_BINDING legacy fires + fallbackCount telemetry** · bound+authed deterministic write **NO legacy** · OPID_CONFLICT ยอดเดิมคงไว้ · **bound-then-unauthorized: legacy latched off, queued** · un-writable **queued (no loss/dup)** · **pushToFirebase(all) → guarded writer, NO whole-array** · **indeterminate(read error) → NO silent legacy, queued**
 
-## Dependency ก่อน production cutover (ยังไม่ทำ — gate แยก)
-production `stallmate-9caac` ยัง **Spark** + **ยังไม่มี production `bindOwner`** → candidate ผูก owner จริงไม่ได้จนกว่า: June อนุมัติ Blaze 9caac → prod secret แยก → deploy bindOwner (gate แยก) → smoke synthetic prod fixture · **rollback สองช่วง** (ก่อน Rules B = client .14; หลัง Rules B = rollback rules ก่อนแล้วค่อย .14)
+## Full-Chromium LOCAL/CONTROLLED smoke (ให้ June/CI รัน)
+- Harness `p0_v799_fullchromium_harness.html` (SHA `3f0e8524…`) — ห่อ **auth layer ตัวเดียวกับ candidate** ชี้ **emulator** (spoof projectId 9caac, ไม่แตะ production) + UI 10-point + RTDB/Auth emulator
+- Runbook `p0_v799_fullchromium_README.md` — 10-point checklist (unbound pre-binding ขายได้ · anon · sign-in/re-auth · auth-fail→queue ไม่ silent · reconnect flush · idempotent · quarantine · bound→legacy disabled · telemetry ถูก · console 0 defect + record ไม่เปลี่ยน)
+- HQ sandbox arm64 รัน Chromium เต็มไม่ได้ → HQ รัน jsdom 14/14 (อัตโนมัติ, ครอบ logic ทั้ง 10 จุด) · Full-Chromium click-through = ขั้น June/CI (เหมือน SR1)
 
-## Files (จะ commit เข้า `security/p0/client/prod-candidate/`)
-`stallmate_v7.9.9.html` (`fe38853a…`) · `p0_v799_auth_layer.js` (`0d078dc8…`) · `p0_v799_build_candidate.js` · `p0_v799_candidate_smoke.js` (`92f63e9d…`) · `p0_v799_verify_result.txt` (`61d9b7c6…`) · `p0_v799_candidate_evidence.md`
+## Dependency ก่อน production cutover (gate แยก)
+production Spark + ไม่มี prod bindOwner → ก่อนผูก owner จริงต้อง: Blaze 9caac → prod secret แยก → deploy prod bindOwner → smoke synthetic · rollback สองช่วง (ก่อน Rules B = client .14; หลัง Rules B = rollback rules ก่อนแล้ว .14)
 
-**Return → Room 00:** SECURITY P0 — v7.9.9 PRODUCTION CLIENT CANDIDATE · built additive from .14 (protected 11 fns + main app byte-identical) · config guard 9caac-only · R1 auth + deterministic OPID_CONFLICT writer + §E telemetry · no direct roomOwners write · verify: M2 209/209 + M0/M1 95/95 + protected-scope OK + syntax OK + integration smoke 8/8 · frozen .13/.14 + origin/main unchanged · **READY_FOR_ROOM00_CODE_REVIEW**. Still HOLD: production deploy · Blaze · Function · binding · Rules · merge main · M3.
+## Files / SHA
+- candidate `stallmate_v7.9.9_hardened.html` = `58deedc3…`
+- `p0_v799_auth_layer.js` = `1e50e806…` · `p0_v799_candidate_smoke.js` = `1c3556e7…` (14/14)
+- `p0_v799_fullchromium_harness.html` = `3f0e8524…` · `p0_v799_fullchromium_README.md`
+- `p0_v799_verify_result_hardened.txt` = `04ef2062…` · `p0_v799_build_candidate.js`
+
+**Return → Room 00:** SECURITY P0 — v7.9.9 candidate HARDENED — fallback ปิด 7 เงื่อนไข (PRE_BINDING-only, error→queue, bound→permanent latch off, telemetry-counted, no-Rules-bypass, queue-no-loss/dup, all-paths-guarded) · verify M2 209/209 + M0/M1 95/95 + protected-scope OK + jsdom hardened smoke 14/14 · frozen/origin-main unchanged · candidate SHA 58deedc3 · Full-Chromium controlled harness + 10-point runbook prepared for June/CI · READY_FOR_ROOM00_CODE_REVIEW. Still HOLD: production deploy · Blaze · Function · binding · Rules · merge main · M3.

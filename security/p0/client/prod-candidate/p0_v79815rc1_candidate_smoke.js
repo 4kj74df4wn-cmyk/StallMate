@@ -2,9 +2,9 @@
 // v7.9.9 candidate integration smoke (jsdom + mock firebase/RTDB; synthetic) — HARDENED FALLBACK coverage.
 const fs=require('fs'); const { JSDOM }=require('jsdom');
 let pass=0, fail=0; const ok=(c,l)=>{console.log((c?'  PASS ':'  FAIL ')+l); c?pass++:fail++;};
-const html=fs.readFileSync('stallmate_v7.9.9.html','utf8');
+const html=fs.readFileSync(process.argv[2]||'stallmate_v7.9.8.15-rc.1.html','utf8');
 const blocks=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
-const layer=blocks.find(b=>b.indexOf('v7.9.9 PRODUCTION AUTH LAYER')>=0);
+const layer=blocks.find(b=>b.indexOf('PRODUCTION AUTH LAYER')>=0);
 if(!layer){ console.error('auth layer block not found'); process.exit(2); }
 
 // ---- in-memory RTDB with on/update ----
@@ -45,7 +45,7 @@ function win_for(projectId, dbOpts){
 }
 
 (async()=>{
-  console.log('=== v7.9.9 CANDIDATE INTEGRATION SMOKE (jsdom; HARDENED fallback; synthetic) ===');
+  console.log('=== v7.9.8.15-rc.1 CANDIDATE INTEGRATION SMOKE (jsdom; HARDENED fallback; synthetic) ===');
 
   // S1 config guard
   { const {win,db}=win_for('stallmate-9caac'); await wait(); const bar=win.document.getElementById('__sm_authbar'); ok(bar && !/หยุด/.test(bar.textContent),'config guard ACCEPTS stallmate-9caac'); }
@@ -55,7 +55,7 @@ function win_for(projectId, dbOpts){
   const {win,db,auth}=win_for('stallmate-9caac'); await wait(60);
   ok(!!win.__smAuth,'__smAuth exposed'); ok(auth.currentUser && auth.currentUser.isAnonymous,'anonymous bootstrap');
   const tele=db.__data.readiness&&db.__data.readiness.audit; const devKey=tele&&Object.keys(tele)[0];
-  ok(tele&&tele[devKey]&&tele[devKey].appVersion==='7.9.9','§E telemetry appVersion 7.9.9');
+  ok(tele&&tele[devKey]&&tele[devKey].appVersion==='7.9.8.15-rc.1','§E telemetry appVersion 7.9.8.15-rc.1');
 
   // S3 PRE-BINDING (roomOwners absent) + anon(not authed) -> LEGACY fallback + fallbackCount telemetry
   win.__legacyCalls=0;

@@ -1,5 +1,5 @@
 /* ============================================================================
- * StallMate P0 — v7.9.9 PRODUCTION AUTH LAYER (additive; injected as a separate
+ * StallMate P0 PRODUCTION AUTH LAYER — candidate v7.9.8.15-rc.1 (additive from frozen v7.9.8.14; injected as a separate
  * <script> block; does NOT modify the frozen main app script or the 11 protected
  * financial functions). Classic script (no ES modules). Uses firebase compat globals.
  *
@@ -113,7 +113,7 @@ window.StallMateAuth = { createAuthController: createAuthController, withTimeout
 
 /* ---- PRODUCTION WIRING ---- */
 var PROD_PROJECT = 'stallmate-9caac';
-var AUTH_BUILD = '7.9.9';
+var AUTH_BUILD = '7.9.8.15-rc.1';   // Security P0 additive candidate from frozen v7.9.8.14 (NOT feature v7.9.9)
 function canon(v){ if(v===null||typeof v!=='object')return JSON.stringify(v); if(Array.isArray(v))return '['+v.map(canon).join(',')+']'; return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+canon(v[k]);}).join(',')+'}'; }
 function banner(txt, bad){ try{ var b=document.getElementById('__sm_authbar'); if(!b){ b=document.createElement('div'); b.id='__sm_authbar'; b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;font:12px -apple-system,Sarabun,sans-serif;padding:4px 8px;text-align:center'; document.body.appendChild(b);} b.style.background=bad?'#b42318':'#0b1020'; b.style.color='#fff'; b.textContent=txt; }catch(e){} }
 

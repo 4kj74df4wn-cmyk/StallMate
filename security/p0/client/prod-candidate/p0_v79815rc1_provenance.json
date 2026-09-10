@@ -1,0 +1,15 @@
+{
+  "productVersion": "StallMate",
+  "baselineVersion": "v7.9.8.14",
+  "baselineSha256": "d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11",
+  "candidateVersion": "v7.9.8.15-rc.1",
+  "candidateSha256": "97ba2ffcfa5a08a9645648799e8c20fc69351fdc5ddcceaa471edf3fc29215e4",
+  "releaseChannel": "production-candidate",
+  "sourceCommit": "(set-after-push)",
+  "parentCommit": "2955f56",
+  "buildTimestamp": "2026-09-10T05:45:06.165Z",
+  "productionProjectId": "stallmate-9caac",
+  "deploymentStatus": "NOT_DEPLOYED",
+  "rulesStatus": "NOT_DEPLOYED",
+  "frozenArtifactsUnchanged": true
+}

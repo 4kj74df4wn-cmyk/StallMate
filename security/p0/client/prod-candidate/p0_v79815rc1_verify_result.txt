@@ -1,17 +1,24 @@
-=== v7.9.9 HARDENED CANDIDATE VERIFY (sandbox, node v22.23.2) ===
+=== v7.9.8.15-rc.1 CANDIDATE — FULL VERIFY (sandbox node v22.23.2) ===
+baseline v7.9.8.14 SHA: d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11 (expect d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11)
+candidate v7.9.8.15-rc.1 SHA: 97ba2ffcfa5a08a9645648799e8c20fc69351fdc5ddcceaa471edf3fc29215e4
 syntax: syntax OK (2 script block(s) parsed)
 M2 financial regression: 209/209 PASS
 M0/M1 regression: 95/95 PASS
 protected-scope: protected-scope OK (11 fns == immutable snapshot)
-frozen .14 unchanged: d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11
-candidate SHA: 58deedc362c470320e126e2c82dcd943221d54968f1064a7374f0974b849db4b
+APP_VERSION: APP_VERSION='v7.9.8.15-rc.1'  AUTH_BUILD: AUTH_BUILD = '7.9.8.15-rc.1'
+--- NEGATIVE: baseline-SHA guard ---
+  FIRED: corrupt baseline rejected (build aborts exit 9)
+--- NEGATIVE: manifest staging/unknown project ---
+  FIRED: staging projectId rejected
+--- provenance manifest validation ---
+MANIFEST VALID: v7.9.8.15-rc.1 channel=production-candidate project=stallmate-9caac deploy=NOT_DEPLOYED
 --- HARDENED integration smoke (jsdom) ---
-=== v7.9.9 CANDIDATE INTEGRATION SMOKE (jsdom; HARDENED fallback; synthetic) ===
+=== v7.9.8.15-rc.1 CANDIDATE INTEGRATION SMOKE (jsdom; HARDENED fallback; synthetic) ===
   PASS config guard ACCEPTS stallmate-9caac
   PASS config guard REFUSES non-9caac
   PASS __smAuth exposed
   PASS anonymous bootstrap
-  PASS §E telemetry appVersion 7.9.9
+  PASS §E telemetry appVersion 7.9.8.15-rc.1
   PASS PRE_BINDING unbound: legacy fallback fires (backward-compat)
   PASS fallback emits countable telemetry (fallbackCount)
   PASS owner authorized after bind
