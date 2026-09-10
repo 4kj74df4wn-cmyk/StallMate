@@ -1,31 +1,53 @@
 <!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>v7.9.9 Full-Chromium Controlled Smoke (emulator; NOT production)</title>
-<style>body{font-family:-apple-system,Sarabun,sans-serif;max-width:820px;margin:16px auto;padding:0 12px}button{padding:7px 10px;margin:3px;border:1px solid #bbb;border-radius:6px;background:#f7f7f7;cursor:pointer}input{padding:6px;border:1px solid #ccc;border-radius:6px;margin:2px}#log{white-space:pre-wrap;background:#0b1020;color:#cde;padding:10px;border-radius:8px;height:240px;overflow:auto;font:12px ui-monospace,monospace}.ok{color:#1a7f37}.bad{color:#b42318}</style>
+<title>v7.9.8.15-rc.1 Full-Chromium Controlled Smoke (emulator ONLY; NOT production)</title>
+<style>body{font-family:-apple-system,Sarabun,sans-serif;max-width:860px;margin:16px auto;padding:0 12px}button{padding:7px 10px;margin:3px;border:1px solid #bbb;border-radius:6px;background:#f7f7f7;cursor:pointer}input{padding:6px;border:1px solid #ccc;border-radius:6px;margin:2px}#log{white-space:pre-wrap;background:#0b1020;color:#cde;padding:10px;border-radius:8px;height:230px;overflow:auto;font:12px ui-monospace,monospace}#net{white-space:pre-wrap;background:#101a10;color:#bfe;padding:8px;border-radius:8px;height:120px;overflow:auto;font:11px ui-monospace,monospace}.ok{color:#1a7f37}.bad{color:#b42318}</style>
+<script>
+/* ---- SAFETY CONTROL: block+log any runtime request to non-emulator/production endpoints (BEFORE SDK init) ---- */
+(function(){
+ window.__net={all:[],blockedProd:0};
+ function classify(u){ u=String(u||''); 
+   if(/^wss?:\/\/(127\.0\.0\.1|localhost)/.test(u)||/^https?:\/\/(127\.0\.0\.1|localhost)/.test(u)) return 'emulator';
+   if(/gstatic\.com|googleapis\.com\/.*firebasejs/.test(u)) return 'cdn';
+   if(/firebaseio\.com|firebasedatabase\.app|identitytoolkit\.googleapis\.com|googleapis\.com|firebaseinstallations|firebase.*\.app/.test(u)) return 'PROD';
+   return 'other'; }
+ function note(kind,u,blocked){ window.__net.all.push({kind,u:String(u).slice(0,80),blocked}); if(kind==='PROD'&&blocked)window.__net.blockedProd++; try{var d=document.getElementById('net'); if(d)d.textContent='requests: '+window.__net.all.length+' · PROD blocked: '+window.__net.blockedProd+'\n'+window.__net.all.slice(-12).map(function(x){return (x.blocked?'⛔':'·')+' ['+x.kind+'] '+x.u;}).join('\n');}catch(e){} }
+ var of=window.fetch; window.fetch=function(input,init){ var u=(input&&input.url)||input; var k=classify(u); if(k==='PROD'){ note('PROD',u,true); return Promise.reject(new Error('BLOCKED_PROD_REQUEST')); } note(k,u,false); return of.apply(this,arguments); };
+ var oo=XMLHttpRequest.prototype.open; XMLHttpRequest.prototype.open=function(m,u){ var k=classify(u); if(k==='PROD'){ note('PROD',u,true); throw new Error('BLOCKED_PROD_REQUEST'); } note(k,u,false); return oo.apply(this,arguments); };
+ var OW=window.WebSocket; window.WebSocket=function(u,p){ var k=classify(u); if(k==='PROD'){ note('PROD',u,true); throw new Error('BLOCKED_PROD_WS'); } note(k,u,false); return p?new OW(u,p):new OW(u); }; window.WebSocket.prototype=OW.prototype;
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head><body>
-<h3>StallMate v7.9.9 — Full-Chromium CONTROLLED smoke (emulator only · project spoofed stallmate-9caac · NOT production)</h3>
-<p style="font-size:12px;color:#666">auth layer = byte-identical กับ candidate. ต้องเปิด emulator Auth 9099 + RTDB 9000. เปิดด้วย ?emulator=1</p>
-<fieldset><legend>flow</legend>
-email <input id="em" value="owner@x.com"> pw <input id="pw" value="pw123456">
+<h3>StallMate v7.9.8.15-rc.1 — Full-Chromium CONTROLLED smoke (emulator ONLY · project-spoof stallmate-9caac · NOT production)</h3>
+<p style="font-size:12px;color:#666">ต้องเปิดด้วย ?emulator=1 · emulator Auth 9099 + RTDB 9000 · auth layer = byte-identical กับ candidate</p>
+<fieldset><legend>flow (synthetic room/user เท่านั้น)</legend>
+email <input id="em" value="owner@example.com"> pw <input id="pw" value="pw123456">
 <button id="bCreate">Create test owner(emu)</button><button id="bSignin">Owner sign-in</button><button id="bOut">Sign out</button><button id="bRe">Re-auth</button>
 <button id="bSeed">Seed roomOwners (bind)</button><button id="bUnseed">Remove binding</button><br>
 <button id="bOffline">Toggle offline</button> opId <input id="opid" value="op-1" size="8"> total <input id="total" value="250" size="6">
 <button id="bSale">Record sale</button><button id="bImport">pushToFirebase(all)</button><button id="bFlush">Reconnect flush</button>
 </fieldset>
-<div id="log"></div>
+<div id="log"></div><b style="font-size:11px">network monitor (PROD ต้อง = 0):</b><div id="net"></div>
 <script>
-var params=new URLSearchParams(location.search); var EMU=params.get('emulator')==='1';
-var config={apiKey:"demo",authDomain:"localhost",projectId:"stallmate-9caac",databaseURL:"http://127.0.0.1:9000?ns=stallmate-9caac"};
-var fbApp=firebase.initializeApp(config,'stallmate'); var fbDb=firebase.database(fbApp); var fbAuth=firebase.auth(fbApp);
-if(EMU){ fbDb.useEmulator("127.0.0.1",9000); fbAuth.useEmulator("http://127.0.0.1:9099",{disableWarnings:true}); }
-window.fbDb=fbDb; window.myRoomCode='BBMANN'; window.sales=[]; window.unsyncedIds=new Set();
-window.saveUnsynced=function(){}; window.refreshSyncInfoText=function(){ L('pending='+(window.__smAuth?window.__smAuth.pendingCount():'?')+' quarantined='+(window.__smAuth?window.__smAuth.quarantinedCount():'?')); };
-window.__legacyCount=0;
-window.updateSaleInFirebase=function(s){ window.__legacyCount++; L('LEGACY write id='+s.id,'bad'); fbDb.ref('rooms/BBMANN/legacySales/'+String(s.id).replace('.','_')).set(s); };
-window.pushToFirebase=function(changed){ if(changed==='sales'||changed==='all'){ L('LEGACY whole-array sales write'); fbDb.ref('rooms/BBMANN/sales').set(window.sales.slice()); } };
 function L(m,c){var d=document.getElementById('log');d.innerHTML+=(c?'<span class="'+c+'">'+m+'</span>':m)+String.fromCharCode(10);d.scrollTop=d.scrollHeight;}
+var params=new URLSearchParams(location.search); var EMU=params.get('emulator')==='1';
+var ROOM='SMOKE9caac'; // SYNTHETIC room (ไม่ใช้ BBMANN จริง)
+window.myRoomCode=ROOM; window.sales=[]; window.unsyncedIds=new Set(); window.saveUnsynced=function(){}; window.refreshSyncInfoText=function(){ L('pending='+(window.__smAuth?window.__smAuth.pendingCount():'?')+' quarantined='+(window.__smAuth?window.__smAuth.quarantinedCount():'?')); };
+window.__legacyCount=0;
+window.updateSaleInFirebase=function(s){ window.__legacyCount++; L('LEGACY write id='+s.id,'bad'); return fbDb.ref('rooms/'+ROOM+'/legacySales/'+String(s.id).replace('.','_')).set(s); };
+window.pushToFirebase=function(changed){ if(changed==='sales'||changed==='all'){ L('LEGACY whole-array sales write'); fbDb.ref('rooms/'+ROOM+'/sales').set(window.sales.slice()); } };
+if(!EMU){ L('⛔ REFUSED: ไม่ได้เปิดด้วย ?emulator=1 — harness จะไม่ init (กันยิง production)','bad'); }
+else {
+  var config={apiKey:"demo",authDomain:"localhost",projectId:"stallmate-9caac",databaseURL:"http://127.0.0.1:9000?ns=stallmate-9caac"};
+  var fbApp=firebase.initializeApp(config,'stallmate'); var fbDbLocal=firebase.database(fbApp); var fbAuth=firebase.auth(fbApp);
+  fbDbLocal.useEmulator("127.0.0.1",9000); fbAuth.useEmulator("http://127.0.0.1:9099",{disableWarnings:true});   // FORCE emulator before first request
+  window.fbDb=fbDbLocal; try{Object.defineProperty(window.navigator,'onLine',{configurable:true,get:function(){return window.__online!==false;}});}catch(e){} window.__online=true; // define fbDb ONLY in emulator mode -> auth layer bottom-guard runs only here
+  // emulator reachability preflight (interceptor already blocks prod regardless)
+  fetch('http://127.0.0.1:9000/.json').then(function(r){ L('emulator RTDB reachable ('+r.status+')','ok'); }).catch(function(){ L('⚠️ emulator RTDB ไม่ตอบ — เปิด emulator ก่อน (interceptor กัน prod ไว้แล้ว)','bad'); });
+  L('harness init (EMULATOR) room='+ROOM);
+}
 </script>
 <script>
 /* ============================================================================
@@ -265,18 +287,19 @@ if (typeof firebase !== 'undefined' && typeof fbDb !== 'undefined'){
 
 <script>
 document.addEventListener('DOMContentLoaded',function(){
+ if(!window.__smAuth){ /* not emulator or auth layer not active */ }
  var g=function(id){return document.getElementById(id);};
- g('bCreate').onclick=function(){ fbAuth.createUserWithEmailAndPassword(em.value,pw.value).then(function(){L('emu owner created','ok');}).catch(function(e){L('create '+e.code,'bad');}); };
+ g('bCreate').onclick=function(){ firebase.auth(firebase.app('stallmate')).createUserWithEmailAndPassword(em.value,pw.value).then(function(){L('emu owner created','ok');}).catch(function(e){L('create '+e.code,'bad');}); };
  g('bSignin').onclick=function(){ window.__smAuth.signInOwner(em.value,pw.value).then(function(i){L('owner sign-in permanent='+i.permanentIdentity,'ok');}).catch(function(e){L('signin '+e.message,'bad');}); };
  g('bOut').onclick=function(){ window.__smAuth.signOut().then(function(){L('signed out');}); };
  g('bRe').onclick=function(){ window.__smAuth.reAuthOwner(em.value,pw.value).then(function(i){L('re-auth permanent='+i.permanentIdentity,'ok');}); };
- g('bSeed').onclick=function(){ fbAuth.currentUser?fbDb.ref('roomOwners/BBMANN').set(fbAuth.currentUser.uid).then(function(){L('roomOwners seeded (bind) uid='+fbAuth.currentUser.uid.slice(0,6),'ok');}):L('sign in first','bad'); };
- g('bUnseed').onclick=function(){ fbDb.ref('roomOwners/BBMANN').remove().then(function(){L('binding removed (pre-binding again)');}); };
- var online=true; g('bOffline').onclick=function(){ online=!online; window.__forceOffline=!online; L('online='+online); };
- g('bSale').onclick=function(){ var s={id:opid.value,orderId:'o1',time:Date.now(),total:Number(total.value),totalSatang:Number(total.value)*100,cashAmount:Number(total.value),cashSatang:Number(total.value)*100}; Promise.resolve(window.updateSaleInFirebase(s)).then(function(r){ L('sale result: '+JSON.stringify(r)); }); };
- g('bImport').onclick=function(){ window.sales=[{id:'imp-'+Date.now(),orderId:'i',time:Date.now(),total:7,totalSatang:700}]; window.pushToFirebase('all'); L('pushToFirebase(all) done — sales ต้องไปทาง guarded writer'); };
- g('bFlush').onclick=function(){ window.__smAuth.flushPendingSales(function(snap,opId){ var canon=JSON.stringify; return fbDb.ref('rooms/BBMANN/salesRecords/'+opId).transaction(function(cur){if(cur===null)return snap;if(JSON.stringify(cur)===JSON.stringify(snap))return cur;return;}).then(function(res){if(!res.committed){var e=new Error('OPID_CONFLICT');e.code='OPID_CONFLICT';throw e;}return{ok:true};}); }).then(function(r){L('flush: '+JSON.stringify(r), r.recoveryRequired?'bad':'ok');}); };
- L('harness ready · '+(EMU?'EMULATOR':'NO-EMU (จะยิง prod — อย่ารันโหมดนี้)'));
+ g('bSeed').onclick=function(){ var u=firebase.auth(firebase.app('stallmate')).currentUser; u?fbDb.ref('roomOwners/'+window.myRoomCode).set(u.uid).then(function(){L('roomOwners seeded (bind)','ok');}):L('sign in first','bad'); };
+ g('bUnseed').onclick=function(){ fbDb.ref('roomOwners/'+window.myRoomCode).remove().then(function(){L('binding removed (pre-binding)');}); };
+ g('bOffline').onclick=function(){ var d=firebase.database(firebase.app('stallmate')); if(window.__online===false){window.__online=true;d.goOnline();L('online');}else{window.__online=false;d.goOffline();L('offline (navigator.onLine=false)');} };
+ g('bSale').onclick=function(){ var s={id:opid.value,orderId:'o1',time:Date.now(),total:Number(total.value),totalSatang:Number(total.value)*100,cashAmount:Number(total.value),cashSatang:Number(total.value)*100}; Promise.resolve(window.updateSaleInFirebase(s)).then(function(r){ L('sale result: '+JSON.stringify(r)); window.refreshSyncInfoText(); }); };
+ g('bImport').onclick=function(){ window.sales=[{id:'imp-'+Date.now(),orderId:'i',time:Date.now(),total:7,totalSatang:700}]; window.pushToFirebase('all'); L('pushToFirebase(all) — sales ต้องไปทาง guarded writer'); };
+ g('bFlush').onclick=function(){ window.__smAuth.flushPendingSales(function(snap,opId){ return fbDb.ref('rooms/'+window.myRoomCode+'/salesRecords/'+opId).transaction(function(cur){if(cur===null)return snap;if(JSON.stringify(cur)===JSON.stringify(snap))return cur;return;}).then(function(res){if(!res.committed){var e=new Error('OPID_CONFLICT');e.code='OPID_CONFLICT';throw e;}return{ok:true};}); }).then(function(r){L('flush: '+JSON.stringify(r), r.recoveryRequired?'bad':'ok');}); };
+ L('harness ready · '+(EMU?'EMULATOR active':'REFUSED (no ?emulator=1)'));
 });
 </script>
 </body></html>
