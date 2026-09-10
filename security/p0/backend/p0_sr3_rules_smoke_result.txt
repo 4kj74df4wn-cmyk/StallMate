@@ -1,0 +1,21 @@
+=== P0 SR3 LIVE RULES SMOKE (Rules B enforced; synthetic; no prod) ===
+  PASS owner bound via callable (roomOwners set by admin)
+  PASS bound owner writes salesRecords => ALLOW
+  PASS bound owner reads rooms/$room => ALLOW
+  PASS bound owner reads roomOwners/$room => ALLOW
+  PASS idempotent replay (same canonical) => ALLOW/idempotent
+  PASS same opId + changed amount => OPID_CONFLICT (financial idempotency)
+  PASS original financial record unchanged after conflict
+  PASS owner update dropping total/totalSatang => DENY (validate no-field-drop)
+  PASS owner hard-delete salesRecord => DENY
+  PASS anonymous writes salesRecords => DENY
+  PASS anonymous reads rooms/$room => DENY
+  PASS anonymous takeover roomOwners => DENY
+  PASS non-owner authed writes salesRecords => DENY
+  PASS non-owner authed reads rooms/$room => DENY
+  PASS authed takeover/change roomOwners => DENY
+  PASS owner re-auth (recovery) reads own room => ALLOW
+  PASS owner re-auth writes new sale => ALLOW
+  PASS cleanup (rooms/roomOwners/nonces/audit/test users) removed on staging (never production)
+
+=== SR3 LIVE RULES SMOKE: 18/18 PASS, 0 FAIL ===
