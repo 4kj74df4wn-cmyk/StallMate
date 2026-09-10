@@ -84,7 +84,13 @@ firebase functions:delete bindOwner --region asia-southeast1 --project stallmate
 - **cleanup แยกผลจาก smoke (B2):** รายงาน `SMOKE PASS/FAIL` และ `CLEANUP PASS/FAIL` แยกกัน · ถ้า RTDB cleanup หรือ `deleteUser()` ล้มเหลว → **exit non-zero** (ไม่กลืน error) · เมื่อ cleanup ล้มเหลว print synthetic identifiers แบบ redacted (`room`, `noncePrefix`, `uid`) สำหรับ manual sweep
 - exit codes: `0`=SMOKE+CLEANUP PASS · `1`=SMOKE FAIL · `4`=SMOKE PASS แต่ CLEANUP FAIL · `3`=abort
 - room = `SMOKEPROD*` (abort ถ้าชน BBMANN) · abort ถ้า project≠stallmate-9caac · SA key + secret อ่านจาก env ไม่ print
-- **deps ตอน gate (reproducible):** `cd functions && npm ci` จาก committed `package-lock.json` — **ห้าม `npm i`** (กัน dependency drift)
+- **deps ตอน gate (reproducible, HOLD-4 fix):** smoke ใช้ firebase **client** SDK (`firebase/app,auth,functions`) ซึ่งอยู่ใน `security/p0/package.json` (มี `firebase ^10.14.1` + `firebase-admin`) — **ไม่ใช่** `functions/package.json` (มีแค่ admin). รันจากระดับ `security/p0`:
+  ```bash
+  cd security/p0
+  npm ci                                  # จาก committed package-lock.json (ห้าม npm i)
+  node evidence/p0_prod_r2_postdeploy_smoke.js
+  ```
+- **smoke-artifact guard (HOLD-4):** `./prod/verify_smoke_artifacts_sha.sh` ตรวจ 3 ไฟล์ fail-closed: `security/p0/package.json` (`cf44a24e…`), `security/p0/package-lock.json` (`2847c4b6…`), `evidence/p0_prod_r2_postdeploy_smoke.js` (`20951da7…`)
 
 ## 8. SHA manifest + full-artifact-set guard (B4 fix)
 - `security/p0/evidence/p0_prod_r2_sha_manifest.json` — full sha256 ของ deploy artifact set ทั้ง 5 ไฟล์

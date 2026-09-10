@@ -12,7 +12,8 @@
       "./prod/ensure_prod_target_9caac.sh stallmate-9caac",
       "./prod/verify_prod_functions_sha.sh functions"
     ],
-    "installDeps": "cd functions && npm ci   # from committed package-lock.json (NOT npm i)",
+    "installDepsForSmoke": "cd security/p0 && npm ci   # firebase + firebase-admin live at security/p0 level (NOT functions/, NOT npm i)",
+    "runSmoke": "node evidence/p0_prod_r2_postdeploy_smoke.js   # from security/p0 after npm ci",
     "deploy": "firebase deploy --only functions:bindOwner --project stallmate-9caac --config firebase.production.json",
     "rollback": "firebase functions:delete bindOwner --region asia-southeast1 --project stallmate-9caac --force"
   },
@@ -23,11 +24,17 @@
     "security/p0/functions/package.json": "787a5c7eaa069e53af6dc3ca3128116c19f33a1d5371e2b35afc9109f84b207c",
     "security/p0/functions/package-lock.json": "e03ede776e09931007fc7494b62b09d7da2ae6990e9d43b62240f06626534323"
   },
+  "smokeArtifactSet_fullSha256": {
+    "security/p0/package.json": "cf44a24e769aac030b2aa1b4f16a1493c3956e98773635de281a5e51d6c8daa6",
+    "security/p0/package-lock.json": "2847c4b6dbbce0469adee8362877d3427800f2d9a7563165cc53011d5365a7b0",
+    "security/p0/evidence/p0_prod_r2_postdeploy_smoke.js": "20951da7ccd5558dbbc9ddc73518ed0a884ff2f7317f428682ee32533775f6a8"
+  },
   "guardsAndEvidence": {
     "security/p0/prod/ensure_prod_target_9caac.sh": { "sha256_16": "83baf0312647bfb2", "role": "exact-target guard (9caac only)" },
-    "security/p0/prod/verify_prod_functions_sha.sh": { "sha256_16": "a761253c64f95e03", "role": "B4: full-artifact-set reproducibility guard (config+index+handler+package+lock, fail-closed)" },
-    "security/p0/evidence/p0_prod_r2_postdeploy_smoke.js": { "sha256_16": "07584e163fd7e5ba", "role": "B1/B2: e2e smoke; correct ../functions import; cleanup failure => non-zero; SMOKE vs CLEANUP reported separately; deleteUser errors not swallowed" },
-    "security/p0/evidence/p0_prod_r2_guard_results.txt": { "sha256_16": "97b52cf228ea4444", "role": "canonical guard run (target 1 PASS/6 FAIL; reproducibility order-proof + 3 negatives)" },
+    "security/p0/prod/verify_prod_functions_sha.sh": { "sha256_16": "a761253c64f95e03", "role": "B4: deploy-artifact guard (config+index+handler+package+lock, fail-closed)" },
+    "security/p0/prod/verify_smoke_artifacts_sha.sh": { "sha256_16": "e08635ab104d313c", "role": "HOLD-4: smoke-artifact guard (security/p0 package.json+package-lock.json+smoke script, fail-closed)" },
+    "security/p0/evidence/p0_prod_r2_postdeploy_smoke.js": { "sha256_16": "20951da7ccd5558d", "role": "B1/B2: e2e smoke; ../functions import; cleanup failure => non-zero; SMOKE vs CLEANUP separate; deleteUser not swallowed; deps from security/p0 (firebase client SDK)" },
+    "security/p0/evidence/p0_prod_r2_guard_results.txt": { "sha256_16": "5ec7317bc84d9994", "role": "canonical guard run: target + deploy-artifact + smoke-artifact (positives + tampered-lockfile/script/pkg negatives)" },
     "security/p0/evidence/p0_prod_r2_billing_prep.md": { "role": "single canonical runbook" },
     "security/p0/evidence/p0_prod_r2_sha_manifest.json": { "role": "this manifest" }
   },
