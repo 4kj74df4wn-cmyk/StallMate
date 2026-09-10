@@ -1,0 +1,19 @@
+=== v7.9.9 CANDIDATE VERIFY (sandbox, node v22.23.2) ===
+syntax: syntax OK (2 script block(s) parsed)
+M2 financial regression: 209/209 PASS
+M0/M1 regression: 95/95 PASS
+protected-scope: protected-scope OK (11 fns == immutable snapshot)
+frozen .14: d806e672b4409bbefb4f0b57980580720e291f69c268c8b74d08834a7f227a11 (== d806e672 unchanged)
+candidate bytes: 766965 (baseline 751964 + additive)
+--- integration smoke ---
+=== v7.9.9 CANDIDATE INTEGRATION SMOKE (jsdom + mock firebase/RTDB; synthetic) ===
+  PASS config guard ACCEPTS stallmate-9caac
+  PASS __smAuth controller exposed
+  PASS anonymous bootstrap (device identity)
+  PASS §E telemetry written (appVersion 7.9.9)
+  PASS owner authorized after roomOwners bind
+  PASS owner guarded write -> salesRecords/{opId} (deterministic)
+  PASS same opId + changed amount -> original unchanged (OPID_CONFLICT)
+  PASS config guard REFUSES non-9caac project (stallmate-staging-2026-5f39f)
+
+=== CANDIDATE SMOKE: 8/8 PASS, 0 FAIL ===
