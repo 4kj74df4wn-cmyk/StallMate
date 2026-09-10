@@ -1,0 +1,10 @@
+{
+  "name": "stallmate-p0-postdeploy-smoke",
+  "description": "Dedicated runner deps for P0 R2 production post-deploy smoke ONLY (firebase client + admin). Isolated from the test-suite package to avoid the rules-unit-testing peer conflict. Not part of any deployed bundle.",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "firebase": "^10.14.1",
+    "firebase-admin": "^12.0.0"
+  }
+}

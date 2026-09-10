@@ -10,10 +10,11 @@
  * synthetic Auth-user deletion fails, the process exits NON-ZERO (cleanup errors are NOT
  * swallowed) and prints redacted synthetic identifiers for a manual sweep.
  *
- * Deps at gate time (reproducible): this smoke uses the firebase CLIENT SDK, which lives in
- * security/p0/package.json (firebase + firebase-admin), NOT functions/package.json (admin only).
- * Run from security/p0:   npm ci   then   node evidence/p0_prod_r2_postdeploy_smoke.js
- * (do NOT `npm i` — that can drift dependencies; do NOT install into functions/.)
+ * Deps at gate time (reproducible): this smoke uses the firebase CLIENT SDK. Its dependencies live
+ * in a DEDICATED runner manifest at security/p0/evidence/ (firebase + firebase-admin ONLY) — kept
+ * separate from security/p0/package.json to avoid the @firebase/rules-unit-testing peer conflict.
+ * Run from security/p0/evidence:   npm ci   then   node p0_prod_r2_postdeploy_smoke.js
+ * (do NOT `npm i`, do NOT --force / --legacy-peer-deps; the lockfile installs clean.)
  * Env (never printed):
  *   GCLOUD_PROJECT=stallmate-9caac
  *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/prod-sa-key.json  (downloaded at gate, deleted after)
